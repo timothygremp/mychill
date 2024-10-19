@@ -163,16 +163,42 @@ struct AudioFileView: View {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.1))
                 
-                ProgressArc(progress: progress)
+                ProgressBorder(progress: progress)
                     .stroke(
-                        LinearGradient(
-                            gradient: Gradient(colors: [.red, .orange, .yellow, .green, .blue, .purple]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        AngularGradient(
+                            gradient: Gradient(colors: [
+                                .blue, .purple, .red, .orange, .yellow, .green, .blue
+                            ]),
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
                         ),
                         style: StrokeStyle(lineWidth: 12, lineCap: .round)
                     )
-                    .rotationEffect(.degrees(-90))
+                
+                // Draggable knob at the end of the progress
+                if isPlaying || isDragging || progress > 0 {
+                    Circle()
+                        .fill(Color.white)
+                        .frame(width: 20, height: 20)
+                        .position(positionForProgress(progress, in: geometry.size))
+                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    updateProgress(value: value, in: geometry)
+                                }
+                                .onEnded { _ in
+                                    isDragging = false
+                                    if let player = audioPlayer {
+                                        player.currentTime = progress * player.duration
+                                        if isPlaying {
+                                            player.play()
+                                        }
+                                    }
+                                }
+                        )
+                }
 
                 VStack {
                     HStack {
@@ -209,28 +235,6 @@ struct AudioFileView: View {
                 }
                 .padding(12)
             }
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        isDragging = true
-                        let angle = Double(atan2(value.location.y - geometry.size.height / 2,
-                                                 value.location.x - geometry.size.width / 2))
-                        var normalizedAngle = (angle + .pi / 2) / (.pi * 2)
-                        if normalizedAngle < 0 {
-                            normalizedAngle += 1
-                        }
-                        progress = normalizedAngle
-                    }
-                    .onEnded { _ in
-                        isDragging = false
-                        if let player = audioPlayer {
-                            player.currentTime = progress * player.duration
-                            if isPlaying {
-                                player.play()
-                            }
-                        }
-                    }
-            )
         }
         .aspectRatio(1/1.618, contentMode: .fit)
         .onAppear(perform: setupAudioPlayer)
@@ -251,6 +255,30 @@ struct AudioFileView: View {
                 secondaryButton: .cancel()
             )
         }
+    }
+
+    private func positionForProgress(_ progress: Double, in size: CGSize) -> CGPoint {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let radius = min(size.width, size.height) / 2 - 6 // Adjusted to match the ProgressBorder radius
+        let angle = Angle(degrees: -90 + 360 * progress) // Start from top
+        return CGPoint(
+            x: center.x + radius * CGFloat(cos(angle.radians)),
+            y: center.y + radius * CGFloat(sin(angle.radians))
+        )
+    }
+
+    private func updateProgress(value: DragGesture.Value, in geometry: GeometryProxy) {
+        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        let touchPoint = value.location
+        
+        let angle = atan2(touchPoint.y - center.y, touchPoint.x - center.x)
+        var normalizedAngle = (angle + .pi / 2) / (2 * .pi)
+        if normalizedAngle < 0 {
+            normalizedAngle += 1
+        }
+        
+        progress = normalizedAngle
+        isDragging = true
     }
 
     private func setupAudioPlayer() {
@@ -281,16 +309,17 @@ struct AudioFileView: View {
     }
 }
 
-struct ProgressArc: Shape {
+struct ProgressBorder: Shape {
     var progress: Double
     
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        path.addArc(center: CGPoint(x: rect.midX, y: rect.midY),
-                    radius: rect.width / 2 - 6, // Adjusted to account for the wider stroke
-                    startAngle: .degrees(0),
-                    endAngle: .degrees(360 * progress),
-                    clockwise: false)
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2 - 6
+        let startAngle = Angle(degrees: -90) // Start from top
+        let endAngle = Angle(degrees: -90 + 360 * progress)
+        
+        path.addArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
         return path
     }
 }
@@ -353,14 +382,29 @@ struct ViewHeightKey: PreferenceKey {
 }
 
 struct LoadingView: View {
+    @State private var isAnimating = false
+    
     var body: some View {
         ZStack {
             Color.black.opacity(0.4)
                 .edgesIgnoringSafeArea(.all)
             
-            ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                .scaleEffect(2)
+            ZStack {
+                ForEach(0..<5) { index in
+                    Circle()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: 20, height: 20)
+                        .offset(y: -30)
+                        .rotationEffect(Angle(degrees: Double(index) * 72))
+                        .scaleEffect(isAnimating ? 1 : 0.5)
+                        .animation(Animation.easeInOut(duration: 1).repeatForever().delay(Double(index) * 0.2), value: isAnimating)
+                }
+            }
+            .rotationEffect(isAnimating ? .degrees(360) : .degrees(0))
+            .animation(Animation.linear(duration: 2.5).repeatForever(autoreverses: false), value: isAnimating)
+        }
+        .onAppear {
+            isAnimating = true
         }
     }
 }
