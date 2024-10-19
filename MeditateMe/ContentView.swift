@@ -151,6 +151,7 @@ struct AudioFileView: View {
     @State private var isPlaying = false
     @State private var progress: Double = 0
     @State private var duration: TimeInterval = 0
+    @State private var currentTime: TimeInterval = 0
     @State private var errorMessage: String?
     @State private var isDragging = false
     @State private var showingDeleteConfirmation = false
@@ -176,7 +177,6 @@ struct AudioFileView: View {
                         style: StrokeStyle(lineWidth: 12, lineCap: .round)
                     )
                 
-                // Draggable knob at the end of the progress
                 if isPlaying || isDragging || progress > 0 {
                     Circle()
                         .fill(Color.white)
@@ -192,6 +192,7 @@ struct AudioFileView: View {
                                     isDragging = false
                                     if let player = audioPlayer {
                                         player.currentTime = progress * player.duration
+                                        currentTime = player.currentTime
                                         if isPlaying {
                                             player.play()
                                         }
@@ -214,15 +215,18 @@ struct AudioFileView: View {
                     Spacer()
                     
                     HStack {
-                        Text(timeString(time: duration))
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        // Time display
+                        Text(timeDisplay())
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
                             .foregroundColor(.blue)
-                            .padding(8)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
                             .background(Color.white.opacity(0.8))
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                         
                         Spacer()
                         
+                        // Play/Pause button
                         Button(action: togglePlayPause) {
                             Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                 .resizable()
@@ -242,6 +246,7 @@ struct AudioFileView: View {
             if isPlaying && !isDragging {
                 if let player = audioPlayer {
                     progress = player.currentTime / player.duration
+                    currentTime = player.currentTime
                 }
             }
         }
@@ -254,6 +259,45 @@ struct AudioFileView: View {
                 },
                 secondaryButton: .cancel()
             )
+        }
+    }
+
+    private func setupAudioPlayer() {
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: audioFile.url)
+            audioPlayer?.prepareToPlay()
+            duration = audioPlayer?.duration ?? 0
+            errorMessage = nil
+        } catch {
+            print("Error creating audio player: \(error)")
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func togglePlayPause() {
+        if isPlaying {
+            audioPlayer?.pause()
+        } else {
+            audioPlayer?.play()
+        }
+        isPlaying.toggle()
+    }
+
+    private func timeDisplay() -> String {
+        if isPlaying || progress > 0 {
+            return "\(timeString(time: currentTime, includeLeadingZero: false)) / \(timeString(time: duration))"
+        } else {
+            return timeString(time: duration)
+        }
+    }
+
+    private func timeString(time: TimeInterval, includeLeadingZero: Bool = true) -> String {
+        let minute = Int(time) / 60
+        let second = Int(time) % 60
+        if includeLeadingZero {
+            return String(format: "%02d:%02d", minute, second)
+        } else {
+            return String(format: "%d:%02d", minute, second)
         }
     }
 
@@ -279,33 +323,6 @@ struct AudioFileView: View {
         
         progress = normalizedAngle
         isDragging = true
-    }
-
-    private func setupAudioPlayer() {
-        do {
-            audioPlayer = try AVAudioPlayer(contentsOf: audioFile.url)
-            audioPlayer?.prepareToPlay()
-            duration = audioPlayer?.duration ?? 0
-            errorMessage = nil
-        } catch {
-            print("Error creating audio player: \(error)")
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func togglePlayPause() {
-        if isPlaying {
-            audioPlayer?.pause()
-        } else {
-            audioPlayer?.play()
-        }
-        isPlaying.toggle()
-    }
-
-    private func timeString(time: TimeInterval) -> String {
-        let minute = Int(time) / 60
-        let second = Int(time) % 60
-        return String(format: "%02d:%02d", minute, second)
     }
 }
 
