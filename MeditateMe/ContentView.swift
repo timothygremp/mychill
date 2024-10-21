@@ -26,8 +26,12 @@ struct ContentView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(audioFiles) { audioFile in
-                        AudioFileView(audioFile: audioFile, onDelete: { deleteAudioFile(audioFile) })
-                            .aspectRatio(1/1.618, contentMode: .fit) // Golden ratio
+                        AudioFileView(
+                            audioFile: audioFile,
+                            onDelete: { deleteAudioFile(audioFile) },
+                            onToggleFavorite: { toggleFavorite(audioFile) }
+                        )
+                        .aspectRatio(1/1.618, contentMode: .fit) // Golden ratio
                     }
                 }
                 .padding()
@@ -98,20 +102,26 @@ struct ContentView: View {
                         let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
                         try data.write(to: fileURL)
                         
-                        let newAudioFile = AudioFileModel(id: UUID(), fileName: fileName, creationDate: Date())
+                        let newAudioFile = AudioFileModel(
+                            id: UUID(),
+                            fileName: fileName,
+                            creationDate: Date(),
+                            message: message,
+                            themes: Array(selectedThemes),
+                            isFavorite: false
+                        )
                         audioFiles.insert(newAudioFile, at: 0)
                         saveAudioFiles()
+                        
+                        // Clear input fields after successful creation
+                        message = ""
+                        selectedThemes.removeAll()
                     } catch {
                         print("Error saving audio file: \(error)")
                     }
-                } else if let error = error {
-                    print("Error: \(error)")
                 }
             }
         }.resume()
-
-        message = ""
-        selectedThemes.removeAll()
     }
 
     func loadAudioFiles() {
@@ -141,11 +151,19 @@ struct ContentView: View {
             }
         }
     }
+
+    func toggleFavorite(_ audioFile: AudioFileModel) {
+        if let index = audioFiles.firstIndex(where: { $0.id == audioFile.id }) {
+            audioFiles[index].isFavorite.toggle()
+            saveAudioFiles()
+        }
+    }
 }
 
 struct AudioFileView: View {
     let audioFile: AudioFileModel
     let onDelete: () -> Void
+    let onToggleFavorite: () -> Void
     
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlaying = false
@@ -154,7 +172,7 @@ struct AudioFileView: View {
     @State private var currentTime: TimeInterval = 0
     @State private var errorMessage: String?
     @State private var isDragging = false
-    @State private var showingDeleteConfirmation = false
+    @State private var showingInfoPopup = false
     
     let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
@@ -203,9 +221,14 @@ struct AudioFileView: View {
 
                 VStack {
                     HStack {
+                        Button(action: { showingInfoPopup = true }) {
+                            Image(systemName: "info.circle")
+                                .foregroundColor(.blue)
+                                .font(.system(size: 24))
+                        }
                         Spacer()
-                        Button(action: { showingDeleteConfirmation = true }) {
-                            Image(systemName: "xmark.circle.fill")
+                        Button(action: onToggleFavorite) {
+                            Image(systemName: audioFile.isFavorite ? "heart.fill" : "heart")
                                 .foregroundColor(.red)
                                 .font(.system(size: 24))
                         }
@@ -250,15 +273,8 @@ struct AudioFileView: View {
                 }
             }
         }
-        .alert(isPresented: $showingDeleteConfirmation) {
-            Alert(
-                title: Text("Delete Meditation"),
-                message: Text("Are you sure you want to delete this meditation? This action cannot be undone."),
-                primaryButton: .destructive(Text("Delete")) {
-                    onDelete()
-                },
-                secondaryButton: .cancel()
-            )
+        .sheet(isPresented: $showingInfoPopup) {
+            InfoPopupView(audioFile: audioFile, onDelete: onDelete)
         }
     }
 
@@ -345,6 +361,9 @@ struct AudioFileModel: Identifiable, Codable {
     let id: UUID
     let fileName: String
     let creationDate: Date
+    let message: String
+    let themes: [String]
+    var isFavorite: Bool
     
     var url: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
@@ -423,5 +442,59 @@ struct LoadingView: View {
         .onAppear {
             isAnimating = true
         }
+    }
+}
+
+struct InfoPopupView: View {
+    let audioFile: AudioFileModel
+    let onDelete: () -> Void
+    @Environment(\.presentationMode) var presentationMode
+    @State private var showingDeleteConfirmation = false
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section(header: Text("Creation Date")) {
+                    Text(formattedDate(audioFile.creationDate))
+                }
+                Section(header: Text("Message")) {
+                    Text(audioFile.message)
+                }
+                Section(header: Text("Themes")) {
+                    ForEach(audioFile.themes, id: \.self) { theme in
+                        Text(theme)
+                    }
+                }
+                Section {
+                    Button(action: { showingDeleteConfirmation = true }) {
+                        Text("Delete Meditation")
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .listStyle(GroupedListStyle())
+            .navigationBarTitle("Meditation Info", displayMode: .inline)
+            .navigationBarItems(trailing: Button("Done") {
+                presentationMode.wrappedValue.dismiss()
+            })
+            .alert(isPresented: $showingDeleteConfirmation) {
+                Alert(
+                    title: Text("Delete Meditation"),
+                    message: Text("Are you sure you want to delete this meditation? This action cannot be undone."),
+                    primaryButton: .destructive(Text("Delete")) {
+                        onDelete()
+                        presentationMode.wrappedValue.dismiss()
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+        }
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
