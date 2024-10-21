@@ -14,6 +14,9 @@ struct ContentView: View {
     @State private var isLoading = false
     @State private var audioFiles: [AudioFileModel] = []
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
+    
+    // Add this property to store the number of background images
+    let totalBackgroundImages = 2 // Change this to match the number of background images you have
 
     let columns = [
         GridItem(.flexible()),
@@ -25,9 +28,10 @@ struct ContentView: View {
             // List of audio files
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(audioFiles) { audioFile in
+                    ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
                         AudioFileView(
                             audioFile: audioFile,
+                            backgroundImageName: getBackgroundImageName(for: index),
                             onDelete: { deleteAudioFile(audioFile) },
                             onToggleFavorite: { toggleFavorite(audioFile) }
                         )
@@ -78,6 +82,12 @@ struct ContentView: View {
                 .opacity(isLoading ? 1 : 0)
         )
         .onAppear(perform: loadAudioFiles)
+    }
+
+    // Add this function to get the background image name
+    private func getBackgroundImageName(for index: Int) -> String {
+        let adjustedIndex = (index % totalBackgroundImages) + 1
+        return "background\(adjustedIndex)"
     }
 
     func sendMessage() {
@@ -162,6 +172,7 @@ struct ContentView: View {
 
 struct AudioFileView: View {
     let audioFile: AudioFileModel
+    let backgroundImageName: String
     let onDelete: () -> Void
     let onToggleFavorite: () -> Void
     
@@ -174,38 +185,44 @@ struct AudioFileView: View {
     @State private var errorMessage: String?
     @State private var isDragging = false
     @State private var showingInfoPopup = false
+    @State private var hasPlaybackStarted = false
     
     let timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.gray.opacity(0.1))
+                // Background Image
+                Image(backgroundImageName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
                 
-                ProgressBorder(progress: progress)
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [
-                                .blue, .purple, .red, .orange, .yellow, .green, .blue
-                            ]),
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(270)
-                        ),
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                    )
-                
-                if isPlaying || isDragging || progress > 0 {
+                if hasPlaybackStarted || progress > 0 {
+                    // Progress Arc
+                    ProgressBorder(progress: progress)
+                        .stroke(
+                            AngularGradient(
+                                gradient: Gradient(colors: [
+                                    .blue, .purple, .red, .orange, .yellow, .green, .blue
+                                ]),
+                                center: .center,
+                                startAngle: .degrees(-90),
+                                endAngle: .degrees(270)
+                            ),
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        )
+                    
+                    // Draggable Knob
                     Circle()
                         .fill(Color.white)
                         .frame(width: 20, height: 20)
                         .position(positionForProgress(progress, in: geometry.size))
-                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
                         .gesture(
                             DragGesture()
                                 .onChanged { value in
-                                    updateProgress(value: value, in: geometry)
+                                    updateProgress(value: value, in: geometry.size)
                                 }
                                 .onEnded { _ in
                                     isDragging = false
@@ -224,54 +241,88 @@ struct AudioFileView: View {
                     HStack {
                         Button(action: { showingInfoPopup = true }) {
                             Image(systemName: "info.circle")
-                                .foregroundColor(.blue)
-                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .font(.system(size: 28)) // Increased from 24 to 28
                         }
                         Spacer()
                         Button(action: onToggleFavorite) {
                             Image(systemName: audioFile.isFavorite ? "heart.fill" : "heart")
                                 .foregroundColor(.red)
-                                .font(.system(size: 24))
+                                .font(.system(size: 28)) // Increased from 24 to 28
                         }
                     }
-                    .padding(8)
+                    .padding(10) // Slightly increased padding to accommodate larger icons
                     
                     Spacer()
                     
                     HStack {
-                        // Time display
                         Text(timeDisplay())
                             .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 3)
-                            .background(Color.white.opacity(0.8))
+                            .background(Color.black.opacity(0.6))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
                         
                         Spacer()
                         
-                        // Play/Pause button
                         Button(action: togglePlayPause) {
                             Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 40, height: 40)
-                                .foregroundColor(.blue)
+                                .foregroundColor(.white)
+                                .background(Color.blue)
+                                .clipShape(Circle())
                         }
                         .disabled(errorMessage != nil)
                     }
                 }
                 .padding(12)
             }
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
         }
         .aspectRatio(1/1.618, contentMode: .fit)
         .onAppear(perform: setupAudioPlayer)
         .onReceive(timer) { _ in
-            updatePlaybackStatus()
+            if let player = audioPlayer, !isDragging {
+                progress = player.currentTime / player.duration
+                currentTime = player.currentTime
+            }
         }
         .sheet(isPresented: $showingInfoPopup) {
             InfoPopupView(audioFile: audioFile, onDelete: onDelete)
         }
+    }
+
+    private func positionForProgress(_ progress: Double, in size: CGSize) -> CGPoint {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let radius = min(size.width, size.height) / 2 - 6
+        let angle = 2 * .pi * progress - .pi / 2
+        return CGPoint(
+            x: center.x + radius * CGFloat(cos(angle)),
+            y: center.y + radius * CGFloat(sin(angle))
+        )
+    }
+
+    private func updateProgress(value: DragGesture.Value, in size: CGSize) {
+        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+        let radius = min(size.width, size.height) / 2 - 6
+        let vector = CGVector(dx: value.location.x - center.x, dy: value.location.y - center.y)
+        let angle = atan2(vector.dy, vector.dx) + .pi / 2
+        var progress = (angle + .pi * 2).truncatingRemainder(dividingBy: .pi * 2) / (.pi * 2)
+        progress = min(max(progress, 0), 1)
+        
+        self.progress = progress
+        if let player = audioPlayer {
+            player.currentTime = progress * player.duration
+            currentTime = player.currentTime
+        }
+        isDragging = true
     }
 
     private func setupAudioPlayer() {
@@ -306,23 +357,9 @@ struct AudioFileView: View {
                 currentTime = 0
             }
             audioPlayer?.play()
+            hasPlaybackStarted = true
         }
         isPlaying.toggle()
-    }
-
-    private func updatePlaybackStatus() {
-        guard let player = audioPlayer else { return }
-        
-        if player.isPlaying {
-            progress = player.currentTime / player.duration
-            currentTime = player.currentTime
-        } else if !isDragging {
-            isPlaying = false
-            if progress >= 1.0 {
-                progress = 0
-                currentTime = 0
-            }
-        }
     }
 
     private func timeDisplay() -> String {
@@ -341,30 +378,6 @@ struct AudioFileView: View {
         } else {
             return String(format: "%d:%02d", minute, second)
         }
-    }
-
-    private func positionForProgress(_ progress: Double, in size: CGSize) -> CGPoint {
-        let center = CGPoint(x: size.width / 2, y: size.height / 2)
-        let radius = min(size.width, size.height) / 2 - 6 // Adjusted to match the ProgressBorder radius
-        let angle = Angle(degrees: -90 + 360 * progress) // Start from top
-        return CGPoint(
-            x: center.x + radius * CGFloat(cos(angle.radians)),
-            y: center.y + radius * CGFloat(sin(angle.radians))
-        )
-    }
-
-    private func updateProgress(value: DragGesture.Value, in geometry: GeometryProxy) {
-        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-        let touchPoint = value.location
-        
-        let angle = atan2(touchPoint.y - center.y, touchPoint.x - center.x)
-        var normalizedAngle = (angle + .pi / 2) / (2 * .pi)
-        if normalizedAngle < 0 {
-            normalizedAngle += 1
-        }
-        
-        progress = normalizedAngle
-        isDragging = true
     }
 }
 
@@ -388,7 +401,7 @@ struct ProgressBorder: Shape {
         var path = Path()
         let center = CGPoint(x: rect.midX, y: rect.midY)
         let radius = min(rect.width, rect.height) / 2 - 6
-        let startAngle = Angle(degrees: -90) // Start from top
+        let startAngle = Angle(degrees: -90)
         let endAngle = Angle(degrees: -90 + 360 * progress)
         
         path.addArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
