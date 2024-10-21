@@ -166,6 +166,7 @@ struct AudioFileView: View {
     let onToggleFavorite: () -> Void
     
     @State private var audioPlayer: AVAudioPlayer?
+    @State private var audioPlayerManager: AudioPlayerManager?
     @State private var isPlaying = false
     @State private var progress: Double = 0
     @State private var duration: TimeInterval = 0
@@ -266,12 +267,7 @@ struct AudioFileView: View {
         .aspectRatio(1/1.618, contentMode: .fit)
         .onAppear(perform: setupAudioPlayer)
         .onReceive(timer) { _ in
-            if isPlaying && !isDragging {
-                if let player = audioPlayer {
-                    progress = player.currentTime / player.duration
-                    currentTime = player.currentTime
-                }
-            }
+            updatePlaybackStatus()
         }
         .sheet(isPresented: $showingInfoPopup) {
             InfoPopupView(audioFile: audioFile, onDelete: onDelete)
@@ -283,6 +279,16 @@ struct AudioFileView: View {
             audioPlayer = try AVAudioPlayer(contentsOf: audioFile.url)
             audioPlayer?.prepareToPlay()
             duration = audioPlayer?.duration ?? 0
+            
+            audioPlayerManager = AudioPlayerManager {
+                DispatchQueue.main.async {
+                    self.isPlaying = false
+                    self.progress = 0
+                    self.currentTime = 0
+                }
+            }
+            audioPlayer?.delegate = audioPlayerManager
+            
             errorMessage = nil
         } catch {
             print("Error creating audio player: \(error)")
@@ -294,9 +300,29 @@ struct AudioFileView: View {
         if isPlaying {
             audioPlayer?.pause()
         } else {
+            if progress >= 1.0 {
+                audioPlayer?.currentTime = 0
+                progress = 0
+                currentTime = 0
+            }
             audioPlayer?.play()
         }
         isPlaying.toggle()
+    }
+
+    private func updatePlaybackStatus() {
+        guard let player = audioPlayer else { return }
+        
+        if player.isPlaying {
+            progress = player.currentTime / player.duration
+            currentTime = player.currentTime
+        } else if !isDragging {
+            isPlaying = false
+            if progress >= 1.0 {
+                progress = 0
+                currentTime = 0
+            }
+        }
     }
 
     private func timeDisplay() -> String {
@@ -339,6 +365,19 @@ struct AudioFileView: View {
         
         progress = normalizedAngle
         isDragging = true
+    }
+}
+
+class AudioPlayerManager: NSObject, AVAudioPlayerDelegate {
+    var onFinish: () -> Void
+    var player: AVAudioPlayer?
+    
+    init(onFinish: @escaping () -> Void) {
+        self.onFinish = onFinish
+    }
+    
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        onFinish()
     }
 }
 
