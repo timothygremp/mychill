@@ -16,7 +16,7 @@ struct ContentView: View {
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
     // Add this property to store the number of background images
-    let totalBackgroundImages = 2 // Change this to match the number of background images you have
+    let totalBackgroundImages = 5 // Change this to match the number of background images you have
 
     let columns = [
         GridItem(.flexible()),
