@@ -82,6 +82,14 @@ struct ContentView: View {
                 .opacity(isLoading ? 1 : 0)
         )
         .onAppear(perform: loadAudioFiles)
+        .onAppear {
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                print("Failed to set audio session category: \(error)")
+            }
+        }
     }
 
     // Add this function to get the background image name
@@ -92,7 +100,7 @@ struct ContentView: View {
 
     func sendMessage() {
         isLoading = true
-        let url = URL(string: "http://localhost:3000/generate-meditation")!
+        let url = URL(string: "https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -550,3 +558,4 @@ struct InfoPopupView: View {
         return formatter.string(from: date)
     }
 }
+
