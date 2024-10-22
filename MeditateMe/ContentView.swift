@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import Lottie
 
 struct ContentView: View {
     @State private var message = ""
@@ -22,60 +23,77 @@ struct ContentView: View {
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-
+    @State private var isGeneratingMeditation = false
+    @State private var isConversationActive = false
+    @State private var sentMessage: String?
+    
     var body: some View {
-        VStack {
-            // List of audio files
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
-                        AudioFileView(
-                            audioFile: audioFile,
-                            backgroundImageName: getBackgroundImageName(for: index),
-                            onDelete: { deleteAudioFile(audioFile) },
-                            onToggleFavorite: { toggleFavorite(audioFile) }
-                        )
-                        .aspectRatio(1/1.618, contentMode: .fit) // Golden ratio
+        ZStack {
+            VStack {
+                // List of audio files
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 20) {
+                        ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
+                            AudioFileView(
+                                audioFile: audioFile,
+                                backgroundImageName: getBackgroundImageName(for: index),
+                                onDelete: { deleteAudioFile(audioFile) },
+                                onToggleFavorite: { toggleFavorite(audioFile) }
+                            )
+                            .aspectRatio(1/1.618, contentMode: .fit) // Golden ratio
+                        }
                     }
+                    .padding()
                 }
-                .padding()
-            }
 
-            Spacer()
+                Spacer()
 
-            // Themes section
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(availableThemes, id: \.self) { theme in
-                        ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
-                            if selectedThemes.contains(theme) {
-                                selectedThemes.remove(theme)
-                            } else {
-                                selectedThemes.insert(theme)
+                // Themes section
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(availableThemes, id: \.self) { theme in
+                            ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
+                                if selectedThemes.contains(theme) {
+                                    selectedThemes.remove(theme)
+                                } else {
+                                    selectedThemes.insert(theme)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal)
+                }
+                .frame(height: 50)
+
+                // Message input and send button
+                HStack(alignment: .bottom) {
+                    ExpandingTextView(
+                        text: $message,
+                        onTap: { isConversationActive = true },
+                        onDone: {
+                            // Dismiss the keyboard
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
+                    )
+                    .frame(minHeight: 40)
+
+                    Button(action: sendMessage) {
+                        Image(systemName: "arrow.up.circle.fill")
+                            .foregroundColor(.blue)
+                            .font(.system(size: 30))
+                    }
+                    .padding(.leading, 8)
                 }
                 .padding(.horizontal)
+                .padding(.bottom)
             }
-            .frame(height: 50)
-
-            // Message input and send button
-            HStack(alignment: .bottom) {
-                ExpandingTextView(text: $message)
-                    .padding(8)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(15)
-
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.system(size: 30))
+            .overlay(
+                Group {
+                    if isGeneratingMeditation {
+                        LoadingOverlay()
+                    }
                 }
-                .padding(.leading, 8)
-            }
-            .padding(.horizontal)
-            .padding(.bottom)
+            )
         }
         .overlay(
             LoadingView()
@@ -101,21 +119,28 @@ struct ContentView: View {
     // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
 
     func sendMessage() {
-        isLoading = true
+        // Dismiss the keyboard
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        
+        isGeneratingMeditation = true
+        sentMessage = message
+        let currentMessage = message // Store the current message
+        message = "" // Clear the input field immediately
+        
         let url = URL(string: "http://localhost:3000/generate-meditation")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let body: [String: Any] = [
-            "message": message,
+            "message": currentMessage, // Use the stored message
             "themes": Array(selectedThemes)
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                isLoading = false
+                isGeneratingMeditation = false
                 if let data = data {
                     do {
                         let fileName = "meditation_\(Date().timeIntervalSince1970).mp3"
@@ -126,16 +151,17 @@ struct ContentView: View {
                             id: UUID(),
                             fileName: fileName,
                             creationDate: Date(),
-                            message: message,
+                            message: currentMessage,
                             themes: Array(selectedThemes),
                             isFavorite: false
                         )
                         audioFiles.insert(newAudioFile, at: 0)
                         saveAudioFiles()
                         
-                        // Clear input fields after successful creation
-                        message = ""
+                        // Reset the view
                         selectedThemes.removeAll()
+                        isConversationActive = false
+                        sentMessage = nil
                     } catch {
                         print("Error saving audio file: \(error)")
                     }
@@ -452,23 +478,34 @@ struct ThemeButton: View {
 struct ExpandingTextView: View {
     @Binding var text: String
     @State private var textViewHeight: CGFloat = 40
-
+    var onTap: () -> Void
+    var onDone: () -> Void
+    
     var body: some View {
         ZStack(alignment: .leading) {
             Text(text.isEmpty ? "Enter your message" : text)
                 .foregroundColor(text.isEmpty ? .gray : .clear)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
                 .background(GeometryReader {
                     Color.clear.preference(key: ViewHeightKey.self,
                                            value: $0.frame(in: .local).size.height)
                 })
-
-            TextEditor(text: $text)
+            
+            CustomTextView(text: $text, onDone: onDone)
                 .frame(height: max(40, textViewHeight))
-                .padding(4)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
         }
+        .background(Color(UIColor.systemBackground))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        )
         .onPreferenceChange(ViewHeightKey.self) { textViewHeight = $0 }
+        .onTapGesture {
+            onTap()
+        }
     }
 }
 
@@ -559,5 +596,93 @@ struct InfoPopupView: View {
         formatter.timeStyle = .short
         return formatter.string(from: date)
     }
+}
+
+struct CustomTextView: UIViewRepresentable {
+    @Binding var text: String
+    var onDone: () -> Void
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.isScrollEnabled = false
+        textView.backgroundColor = .clear
+        textView.returnKeyType = .done
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.text = text
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: CustomTextView
+        
+        init(_ parent: CustomTextView) {
+            self.parent = parent
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
+        }
+        
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n" {
+                textView.resignFirstResponder()
+                parent.onDone()
+                return false
+            }
+            return true
+        }
+    }
+}
+
+struct LoadingOverlay: View {
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.7) // Increased opacity for more fog
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                LottieView(name: "flow_women", loopMode: .loop)
+                    .frame(width: 250, height: 250) // Increased size of the animation
+                
+                Text("Generating your meditation...")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding(.top)
+            }
+        }
+    }
+}
+
+struct LottieView: UIViewRepresentable {
+    let name: String
+    let loopMode: LottieLoopMode
+    
+    func makeUIView(context: UIViewRepresentableContext<LottieView>) -> UIView {
+        let view = UIView(frame: .zero)
+        let animationView = LottieAnimationView()
+        animationView.animation = LottieAnimation.named(name)
+        animationView.contentMode = .scaleAspectFit
+        animationView.loopMode = loopMode
+        animationView.play()
+        
+        animationView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(animationView)
+        NSLayoutConstraint.activate([
+            animationView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            animationView.heightAnchor.constraint(equalTo: view.heightAnchor)
+        ])
+        
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {}
 }
 
