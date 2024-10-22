@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import Lottie
+import UIKit
 
 struct ContentView: View {
     @State private var message = ""
@@ -26,6 +27,7 @@ struct ContentView: View {
     @State private var isGeneratingMeditation = false
     @State private var isConversationActive = false
     @State private var sentMessage: String?
+    @State private var textViewHeight: CGFloat = 40
     
     var body: some View {
         ZStack {
@@ -68,15 +70,16 @@ struct ContentView: View {
 
                 // Message input and send button
                 HStack(alignment: .bottom) {
-                    ExpandingTextView(
-                        text: $message,
-                        onTap: { isConversationActive = true },
-                        onDone: {
-                            // Dismiss the keyboard
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                        }
+                    ExpandingTextView(text: $message, height: $textViewHeight) {
+                        // Handle done action
+                    }
+                    .frame(height: textViewHeight)
+                    .background(Color(UIColor.systemBackground))
+                    .cornerRadius(20)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                     )
-                    .frame(minHeight: 40)
 
                     Button(action: sendMessage) {
                         Image(systemName: "arrow.up.circle.fill")
@@ -538,36 +541,60 @@ struct ThemeButton: View {
     }
 }
 
-struct ExpandingTextView: View {
+struct ExpandingTextView: UIViewRepresentable {
     @Binding var text: String
-    @State private var textViewHeight: CGFloat = 40
-    var onTap: () -> Void
+    @Binding var height: CGFloat
     var onDone: () -> Void
-    
-    var body: some View {
-        ZStack(alignment: .leading) {
-            Text(text.isEmpty ? "Enter your message" : text)
-                .foregroundColor(text.isEmpty ? .gray : .clear)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(GeometryReader {
-                    Color.clear.preference(key: ViewHeightKey.self,
-                                           value: $0.frame(in: .local).size.height)
-                })
-            
-            CustomTextView(text: $text, onDone: onDone)
-                .frame(height: max(40, textViewHeight))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.isScrollEnabled = true // Enable scrolling
+        textView.backgroundColor = .clear
+        textView.returnKeyType = .done
+        textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
+        textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return textView
+    }
+
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        uiView.text = text
+        DispatchQueue.main.async {
+            self.height = self.calculateHeight(uiView)
+            uiView.isScrollEnabled = uiView.contentSize.height > 150 // Enable scrolling if content exceeds max height
         }
-        .background(Color(UIColor.systemBackground))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
-        .onPreferenceChange(ViewHeightKey.self) { textViewHeight = $0 }
-        .onTapGesture {
-            onTap()
+    }
+
+    private func calculateHeight(_ uiView: UITextView) -> CGFloat {
+        let sizeThatFits = uiView.sizeThatFits(CGSize(width: uiView.frame.width, height: CGFloat.greatestFiniteMagnitude))
+        return min(max(40, sizeThatFits.height), 150) // Increased max height to 150
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: ExpandingTextView
+
+        init(_ parent: ExpandingTextView) {
+            self.parent = parent
+        }
+
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
+            parent.height = parent.calculateHeight(textView)
+            textView.isScrollEnabled = textView.contentSize.height > 150 // Enable scrolling if content exceeds max height
+        }
+
+        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+            if text == "\n" {
+                textView.resignFirstResponder()
+                parent.onDone()
+                return false
+            }
+            return true
         }
     }
 }
@@ -575,7 +602,7 @@ struct ExpandingTextView: View {
 struct ViewHeightKey: PreferenceKey {
     static var defaultValue: CGFloat { 0 }
     static func reduce(value: inout Value, nextValue: () -> Value) {
-        value = value + nextValue()
+        value = max(value, nextValue())
     }
 }
 
@@ -658,50 +685,6 @@ struct InfoPopupView: View {
         formatter.dateStyle = .long
         formatter.timeStyle = .short
         return formatter.string(from: date)
-    }
-}
-
-struct CustomTextView: UIViewRepresentable {
-    @Binding var text: String
-    var onDone: () -> Void
-    
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
-        textView.delegate = context.coordinator
-        textView.font = UIFont.preferredFont(forTextStyle: .body)
-        textView.isScrollEnabled = false
-        textView.backgroundColor = .clear
-        textView.returnKeyType = .done
-        return textView
-    }
-    
-    func updateUIView(_ uiView: UITextView, context: Context) {
-        uiView.text = text
-    }
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    class Coordinator: NSObject, UITextViewDelegate {
-        var parent: CustomTextView
-        
-        init(_ parent: CustomTextView) {
-            self.parent = parent
-        }
-        
-        func textViewDidChange(_ textView: UITextView) {
-            parent.text = textView.text
-        }
-        
-        func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
-            if text == "\n" {
-                textView.resignFirstResponder()
-                parent.onDone()
-                return false
-            }
-            return true
-        }
     }
 }
 
