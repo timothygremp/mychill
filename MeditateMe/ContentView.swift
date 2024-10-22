@@ -35,12 +35,13 @@ struct ContentView: View {
                     LazyVGrid(columns: columns, spacing: 20) {
                         ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
                             AudioFileView(
-                                audioFile: audioFile,
+                                audioFile: binding(for: audioFile),  // Use a binding here
                                 backgroundImageName: getBackgroundImageName(for: index),
                                 onDelete: { deleteAudioFile(audioFile) },
-                                onToggleFavorite: { toggleFavorite(audioFile) }
+                                onToggleFavorite: { toggleFavorite(audioFile) },
+                                onPlay: { markAsPlayed($0) }
                             )
-                            .aspectRatio(1/1.618, contentMode: .fit) // Golden ratio
+                            .aspectRatio(1/1.618, contentMode: .fit)
                         }
                     }
                     .padding()
@@ -99,7 +100,9 @@ struct ContentView: View {
             LoadingView()
                 .opacity(isLoading ? 1 : 0)
         )
-        .onAppear(perform: loadAudioFiles)
+        .onAppear {
+            loadAudioFiles()
+        }
         .onAppear {
             do {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -153,7 +156,8 @@ struct ContentView: View {
                             creationDate: Date(),
                             message: currentMessage,
                             themes: Array(selectedThemes),
-                            isFavorite: false
+                            isFavorite: false,
+                            hasBeenPlayed: false
                         )
                         audioFiles.insert(newAudioFile, at: 0)
                         saveAudioFiles()
@@ -204,13 +208,28 @@ struct ContentView: View {
             saveAudioFiles()
         }
     }
+
+    private func binding(for audioFile: AudioFileModel) -> Binding<AudioFileModel> {
+        guard let index = audioFiles.firstIndex(where: { $0.id == audioFile.id }) else {
+            fatalError("Can't find audio file in array")
+        }
+        return $audioFiles[index]
+    }
+
+    func markAsPlayed(_ audioFile: AudioFileModel) {
+        if let index = audioFiles.firstIndex(where: { $0.id == audioFile.id }) {
+            audioFiles[index].hasBeenPlayed = true
+            saveAudioFiles()
+        }
+    }
 }
 
 struct AudioFileView: View {
-    let audioFile: AudioFileModel
+    @Binding var audioFile: AudioFileModel  // Change this to a binding
     let backgroundImageName: String
     let onDelete: () -> Void
     let onToggleFavorite: () -> Void
+    let onPlay: (AudioFileModel) -> Void
     
     @State private var audioPlayer: AVAudioPlayer?
     @State private var audioPlayerManager: AudioPlayerManager?
@@ -235,21 +254,21 @@ struct AudioFileView: View {
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .clipped()
                 
+                // Progress Arc
+                ProgressBorder(progress: progress)
+                    .stroke(
+                        AngularGradient(
+                            gradient: Gradient(colors: [
+                                .blue, .purple, .red, .orange, .yellow, .green, .blue
+                            ]),
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        ),
+                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                    )
+                
                 if hasPlaybackStarted || progress > 0 {
-                    // Progress Arc
-                    ProgressBorder(progress: progress)
-                        .stroke(
-                            AngularGradient(
-                                gradient: Gradient(colors: [
-                                    .blue, .purple, .red, .orange, .yellow, .green, .blue
-                                ]),
-                                center: .center,
-                                startAngle: .degrees(-90),
-                                endAngle: .degrees(270)
-                            ),
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                        )
-                    
                     // Draggable Knob
                     Circle()
                         .fill(Color.white)
@@ -278,16 +297,26 @@ struct AudioFileView: View {
                         Button(action: { showingInfoPopup = true }) {
                             Image(systemName: "info.circle")
                                 .foregroundColor(.white)
-                                .font(.system(size: 28)) // Increased from 24 to 28
+                                .font(.system(size: 28))
+                        }
+                        Spacer()
+                        if !audioFile.hasBeenPlayed {
+                            Text("NEW")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.red)
+                                .cornerRadius(8)
                         }
                         Spacer()
                         Button(action: onToggleFavorite) {
                             Image(systemName: audioFile.isFavorite ? "heart.fill" : "heart")
                                 .foregroundColor(.red)
-                                .font(.system(size: 28)) // Increased from 24 to 28
+                                .font(.system(size: 28))
                         }
                     }
-                    .padding(10) // Slightly increased padding to accommodate larger icons
+                    .padding(10)
                     
                     Spacer()
                     
@@ -315,6 +344,19 @@ struct AudioFileView: View {
                     }
                 }
                 .padding(12)
+
+                // Date and Time
+                VStack(spacing: 2) {
+                    Text(formatDate(audioFile.creationDate))
+                        .font(.system(size: 12, weight: .medium))
+                    Text(formatTime(audioFile.creationDate))
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .foregroundColor(.white)
+                .padding(6)
+                .background(Color.black.opacity(0.7))
+                .cornerRadius(8)
+                .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
             }
             .clipShape(RoundedRectangle(cornerRadius: 15))
             .overlay(
@@ -333,6 +375,11 @@ struct AudioFileView: View {
         .sheet(isPresented: $showingInfoPopup) {
             InfoPopupView(audioFile: audioFile, onDelete: onDelete)
         }
+        .onAppear {
+            print("Audio file creation date: \(audioFile.creationDate)")
+            print("Formatted date: \(formatDate(audioFile.creationDate))")
+            print("Formatted time: \(formatTime(audioFile.creationDate))")
+        }
     }
 
     private func positionForProgress(_ progress: Double, in size: CGSize) -> CGPoint {
@@ -347,7 +394,7 @@ struct AudioFileView: View {
 
     private func updateProgress(value: DragGesture.Value, in size: CGSize) {
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
-        let radius = min(size.width, size.height) / 2 - 6
+//        let radius = min(size.width, size.height) / 2 - 6
         let vector = CGVector(dx: value.location.x - center.x, dy: value.location.y - center.y)
         let angle = atan2(vector.dy, vector.dx) + .pi / 2
         var progress = (angle + .pi * 2).truncatingRemainder(dividingBy: .pi * 2) / (.pi * 2)
@@ -394,6 +441,8 @@ struct AudioFileView: View {
             }
             audioPlayer?.play()
             hasPlaybackStarted = true
+            audioFile.hasBeenPlayed = true  // Update the hasBeenPlayed status
+            onPlay(audioFile)
         }
         isPlaying.toggle()
     }
@@ -414,6 +463,18 @@ struct AudioFileView: View {
         } else {
             return String(format: "%d:%02d", minute, second)
         }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd-MM-yy"
+        return formatter.string(from: date)
+    }
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
     }
 }
 
@@ -452,6 +513,7 @@ struct AudioFileModel: Identifiable, Codable {
     let message: String
     let themes: [String]
     var isFavorite: Bool
+    var hasBeenPlayed: Bool  // This should be var, not let
     
     var url: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
