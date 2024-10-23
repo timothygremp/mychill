@@ -12,6 +12,7 @@ struct FirstMeditationView: View {
     @AppStorage("audioFiles") private var audioFilesData: Data = Data()
     @AppStorage("userName") private var userName: String = ""
     @State private var keyboardHeight: CGFloat = 0
+    @State private var animationAmount: CGFloat = 1
     
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
@@ -105,11 +106,24 @@ struct FirstMeditationView: View {
                     Button(action: {
                         isOnboardingComplete = true
                     }) {
-                        Text("See my 1st Meditation")
+                        Text("Go to My First Meditation")
+                            .font(.headline)
                             .foregroundColor(.white)
                             .padding()
-                            .background(Color.blue)
-                            .cornerRadius(10)
+                            .frame(minWidth: 0, maxWidth: .infinity)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(25)
+                            .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                    .padding(.horizontal)
+                    .scaleEffect(animationAmount)
+                    .animation(
+                        Animation.easeInOut(duration: 1.5)
+                            .repeatForever(autoreverses: true),
+                        value: animationAmount
+                    )
+                    .onAppear {
+                        self.animationAmount = 1.1
                     }
                 }
                 

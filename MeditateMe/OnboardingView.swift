@@ -16,6 +16,7 @@ struct OnboardingView: View {
     @FocusState private var focusedField: Field?
     @State private var showFirstMeditationView = false
     @State private var keyboardHeight: CGFloat = 0
+    @State private var animationAmount: CGFloat = 1
     
     enum Field {
         case name, pronunciation
@@ -54,30 +55,34 @@ struct OnboardingView: View {
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(name.isEmpty ? Color.gray : Color.blue)
-                                .cornerRadius(10)
+                                .frame(minWidth: 0, maxWidth: .infinity)
+                                .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                                .cornerRadius(25)
+                                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                         }
-                        .disabled(name.isEmpty)
                         .padding(.horizontal)
+                        .scaleEffect(animationAmount)
+                        .animation(
+                            Animation.easeInOut(duration: 1.5)
+                                .repeatForever(autoreverses: true),
+                            value: animationAmount
+                        )
+                        .disabled(name.isEmpty)
+                        .opacity(name.isEmpty ? 0.5 : 1.0)
                     }
                     .padding()
-                    .padding(.bottom, keyboardHeight) // Add padding at the bottom
+                    .padding(.bottom, keyboardHeight)
                 }
             }
             .onTapGesture {
-                focusedField = nil // Dismiss keyboard when tapping outside of text fields
+                focusedField = nil
             }
             .onAppear {
-                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
-                    if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
-                        let keyboardRectangle = keyboardFrame.cgRectValue
-                        keyboardHeight = keyboardRectangle.height
-                    }
-                }
-                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
-                    keyboardHeight = 0
-                }
+//                setupKeyboardObservers()
+                self.animationAmount = 1.1
+            }
+            .onDisappear {
+//                removeKeyboardObservers()
             }
         }
     }
