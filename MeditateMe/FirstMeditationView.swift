@@ -11,6 +11,7 @@ struct FirstMeditationView: View {
     @State private var meditationGenerated = false
     @AppStorage("audioFiles") private var audioFilesData: Data = Data()
     @AppStorage("userName") private var userName: String = ""
+    @State private var keyboardHeight: CGFloat = 0
     
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
@@ -19,16 +20,45 @@ struct FirstMeditationView: View {
             AnimatedGradientBackground()
             
             VStack(spacing: 20) {
-                Text("Let's Create Your First Meditation")
+                Text("Hello, \(userName)👋")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 8)
+                
+                Text("Let's Create Your First Meditation🥳")
                     .font(.title2)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                 
-                Text("You can pick a selected theme or you can type a message describing what you would like your meditation/affirmation to be about")
-                    .font(.body)
+                VStack(alignment: .leading, spacing: 15) {
+                    Text("To Get Started:")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 5)
+                    
+                    InstructionRow(icon: "1.circle.fill", text: "Pick a theme (scroll right for more options).")
+
+                    Text("OR")
+                    .font(.title2)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal)
+                    
+                    InstructionRow(icon: "2.circle.fill", text: "Type a message describing what you'd like your meditation/affirmation to be about. Examples like: I'm stressed about school or having family issues. You can make it about anything. ")
+
+                     Text("OR")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+
+                    InstructionRow(icon: "3.circle.fill", text: "You can select a theme AND add a message.")
+
+                    InstructionRow(icon: "4.circle.fill", text: "Hit the send button and wait for your meditation to be created!😍")
+                }
+                .padding()
+                .background(Color.white.opacity(0.1))
+                .cornerRadius(15)
+                .padding(.horizontal)
                 
                 // Themes section
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -46,6 +76,8 @@ struct FirstMeditationView: View {
                     .padding(.horizontal)
                 }
                 .frame(height: 50)
+                
+                Spacer() // This will push everything up
                 
                 // Message input and send button
                 HStack(alignment: .bottom) {
@@ -84,13 +116,43 @@ struct FirstMeditationView: View {
                 Spacer()
             }
             .padding()
+            .offset(y: -keyboardHeight) // This will move the entire VStack up
             
             if isGeneratingMeditation {
                 LoadingOverlay()
             }
         }
+        .ignoresSafeArea(.keyboard) // This allows content to go under the keyboard
+        .onAppear {
+            setupKeyboardObservers()
+        }
+        .onDisappear {
+            removeKeyboardObservers()
+        }
     }
-
+    
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+            if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
+                let keyboardRectangle = keyboardFrame.cgRectValue
+                withAnimation(.easeOut(duration: 0.25)) {
+                    self.keyboardHeight = keyboardRectangle.height - 50 // Subtracting 50 to leave some space at the bottom
+                }
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            withAnimation(.easeOut(duration: 0.25)) {
+                self.keyboardHeight = 0
+            }
+        }
+    }
+    
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
     // http://localhost:3000/generate-meditation
     // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
     
@@ -150,5 +212,23 @@ struct FirstMeditationView: View {
 struct FirstMeditationView_Previews: PreviewProvider {
     static var previews: some View {
         FirstMeditationView(isOnboardingComplete: .constant(false), audioFiles: .constant([]))
+    }
+}
+
+struct InstructionRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 15) {
+            Image(systemName: icon)
+                .foregroundColor(.white)
+                .font(.system(size: 24))
+            
+            Text(text)
+                .font(.body)
+                .foregroundColor(.white)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
