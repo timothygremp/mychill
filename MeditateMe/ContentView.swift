@@ -9,6 +9,7 @@ import SwiftUI
 import AVFoundation
 import Lottie
 import UIKit
+import SuperwallKit
 
 class MeditationCredits: ObservableObject {
     @Published var creditsUsed: Int {
@@ -20,7 +21,9 @@ class MeditationCredits: ObservableObject {
     let maxFreeCredits = 5
     
     init() {
-        creditsUsed = UserDefaults.standard.integer(forKey: "creditsUsed")
+        // For testing: Set initial credits to 5 (maxed out)
+        creditsUsed = 5
+        UserDefaults.standard.set(creditsUsed, forKey: "creditsUsed")
     }
     
     func useCredit() {
@@ -197,6 +200,7 @@ struct ContentView: View {
 
     func sendMessage() {
         if meditationCredits.isPaywallReached {
+            // Superwall.shared.register(event: "campaign_trigger")
             showPaywall = true
         } else {
             // Existing send message logic
@@ -868,25 +872,4 @@ extension UIColor {
     }
 }
 
-struct PaywallView: View {
-    var body: some View {
-        VStack {
-            Text("Upgrade to Premium")
-                .font(.title)
-                .padding()
-            
-            Text("You've used all your free credits. Upgrade to create unlimited meditations!")
-                .multilineTextAlignment(.center)
-                .padding()
-            
-            Button("Upgrade Now") {
-                // Implement your in-app purchase logic here
-            }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
-        }
-    }
-}
 
