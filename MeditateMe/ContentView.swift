@@ -82,16 +82,16 @@ struct ContentView: View {
                             // Handle done action
                         }
                         .frame(height: textViewHeight)
-                        .background(Color(UIColor.systemBackground))
+                        .background(Color(UIColor.systemBackground).opacity(0.1))
                         .cornerRadius(20)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
                         )
 
                         Button(action: sendMessage) {
                             Image(systemName: "arrow.up.circle.fill")
-                                .foregroundColor(.white) // Changed to white
+                                .foregroundColor(.white)
                                 .font(.system(size: 30))
                         }
                         .padding(.leading, 8)
@@ -563,34 +563,38 @@ struct ExpandingTextView: UIViewRepresentable {
     @Binding var height: CGFloat
     var onDone: () -> Void
 
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
+    func makeUIView(context: Context) -> GradientPlaceholderTextView {
+        let textView = GradientPlaceholderTextView()
         textView.delegate = context.coordinator
         textView.font = UIFont.preferredFont(forTextStyle: .body)
-        textView.isScrollEnabled = true // Enable scrolling
+        textView.isScrollEnabled = true
         textView.backgroundColor = .clear
         textView.returnKeyType = .done
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        textView.placeholder = "I'm stressed about..."
+        textView.gradientColors = [UIColor(hex: "#9999ff"), UIColor(hex: "#cc99cc")]
+        textView.textColor = .white
         return textView
     }
 
-    func updateUIView(_ uiView: UITextView, context: Context) {
+    func updateUIView(_ uiView: GradientPlaceholderTextView, context: Context) {
         uiView.text = text
         DispatchQueue.main.async {
             self.height = self.calculateHeight(uiView)
-            uiView.isScrollEnabled = uiView.contentSize.height > 150 // Enable scrolling if content exceeds max height
+            uiView.isScrollEnabled = uiView.contentSize.height > 150
         }
     }
 
     private func calculateHeight(_ uiView: UITextView) -> CGFloat {
         let sizeThatFits = uiView.sizeThatFits(CGSize(width: uiView.frame.width, height: CGFloat.greatestFiniteMagnitude))
-        return min(max(40, sizeThatFits.height), 150) // Increased max height to 150
+        return min(max(40, sizeThatFits.height), 150)
     }
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
+
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: ExpandingTextView
 
@@ -601,7 +605,7 @@ struct ExpandingTextView: UIViewRepresentable {
         func textViewDidChange(_ textView: UITextView) {
             parent.text = textView.text
             parent.height = parent.calculateHeight(textView)
-            textView.isScrollEnabled = textView.contentSize.height > 150 // Enable scrolling if content exceeds max height
+            textView.isScrollEnabled = textView.contentSize.height > 150
         }
 
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
@@ -611,6 +615,30 @@ struct ExpandingTextView: UIViewRepresentable {
                 return false
             }
             return true
+        }
+    }
+}
+
+class GradientPlaceholderTextView: UITextView {
+    var placeholder: String = ""
+    var gradientColors: [UIColor] = []
+    
+    override var text: String! {
+        didSet {
+            self.setNeedsDisplay()
+        }
+    }
+    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        
+        if text.isEmpty {
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: self.font ?? UIFont.systemFont(ofSize: 12),
+                .foregroundColor: UIColor.white.withAlphaComponent(0.7) // Changed to white with slight transparency
+            ]
+            
+            placeholder.draw(in: rect.inset(by: textContainerInset), withAttributes: attributes)
         }
     }
 }
@@ -746,5 +774,31 @@ struct LottieView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIView, context: UIViewRepresentableContext<LottieView>) {}
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            red: CGFloat(r) / 255,
+            green: CGFloat(g) / 255,
+            blue:  CGFloat(b) / 255,
+            alpha: CGFloat(a) / 255
+        )
+    }
 }
 
