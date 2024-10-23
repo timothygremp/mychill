@@ -11,6 +11,7 @@ import Lottie
 import UIKit
 
 struct ContentView: View {
+    @AppStorage("isOnboardingComplete") private var isOnboardingComplete = false
     @State private var message = ""
     @State private var selectedThemes: Set<String> = []
     @State private var isLoading = false
@@ -31,73 +32,83 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            VStack {
-                // List of audio files
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
-                        ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
-                            AudioFileView(
-                                audioFile: binding(for: audioFile),  // Use a binding here
-                                backgroundImageName: getBackgroundImageName(for: index),
-                                onDelete: { deleteAudioFile(audioFile) },
-                                onToggleFavorite: { toggleFavorite(audioFile) },
-                                onPlay: { markAsPlayed($0) }
-                            )
-                            .aspectRatio(1/1.618, contentMode: .fit)
+            AnimatedGradientBackground()
+            
+            if isOnboardingComplete {
+                VStack(spacing: 0) {  // Set spacing to 0 to control it manually
+                    // List of audio files
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
+                                AudioFileView(
+                                    audioFile: binding(for: audioFile),
+                                    backgroundImageName: getBackgroundImageName(for: index),
+                                    onDelete: { deleteAudioFile(audioFile) },
+                                    onToggleFavorite: { toggleFavorite(audioFile) },
+                                    onPlay: { markAsPlayed($0) }
+                                )
+                                .aspectRatio(1/1.618, contentMode: .fit)
+                            }
                         }
+                        .padding()
                     }
-                    .padding()
-                }
 
-                Spacer()
+                    // Thicker white divider
+                    Rectangle()
+                        .fill(Color.white)
+                        .frame(height: 2) // Increased thickness
+                        .padding(.vertical, 10) // Adjusted padding
 
-                // Themes section
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(availableThemes, id: \.self) { theme in
-                            ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
-                                if selectedThemes.contains(theme) {
-                                    selectedThemes.remove(theme)
-                                } else {
-                                    selectedThemes.insert(theme)
+                    // Themes section
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(availableThemes, id: \.self) { theme in
+                                ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
+                                    if selectedThemes.contains(theme) {
+                                        selectedThemes.remove(theme)
+                                    } else {
+                                        selectedThemes.insert(theme)
+                                    }
                                 }
                             }
                         }
+                        .padding(.horizontal)
+                    }
+                    .frame(height: 50)
+
+                    // Message input and send button
+                    HStack(alignment: .bottom) {
+                        ExpandingTextView(text: $message, height: $textViewHeight) {
+                            // Handle done action
+                        }
+                        .frame(height: textViewHeight)
+                        .background(Color(UIColor.systemBackground))
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+
+                        Button(action: sendMessage) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .foregroundColor(.white) // Changed to white
+                                .font(.system(size: 30))
+                        }
+                        .padding(.leading, 8)
                     }
                     .padding(.horizontal)
+                    .padding(.bottom)
                 }
-                .frame(height: 50)
-
-                // Message input and send button
-                HStack(alignment: .bottom) {
-                    ExpandingTextView(text: $message, height: $textViewHeight) {
-                        // Handle done action
+                .overlay(
+                    Group {
+                        if isGeneratingMeditation {
+                            LoadingOverlay()
+                        }
                     }
-                    .frame(height: textViewHeight)
-                    .background(Color(UIColor.systemBackground))
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-
-                    Button(action: sendMessage) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.system(size: 30))
-                    }
-                    .padding(.leading, 8)
-                }
-                .padding(.horizontal)
-                .padding(.bottom)
+                )
+            } else {
+                OnboardingView(isOnboardingComplete: $isOnboardingComplete)
             }
-            .overlay(
-                Group {
-                    if isGeneratingMeditation {
-                        LoadingOverlay()
-                    }
-                }
-            )
         }
         .overlay(
             LoadingView()
@@ -105,14 +116,7 @@ struct ContentView: View {
         )
         .onAppear {
             loadAudioFiles()
-        }
-        .onAppear {
-            do {
-                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-                try AVAudioSession.sharedInstance().setActive(true)
-            } catch {
-                print("Failed to set audio session category: \(error)")
-            }
+            setupAudioSession()
         }
     }
 
@@ -224,6 +228,15 @@ struct ContentView: View {
         if let index = audioFiles.firstIndex(where: { $0.id == audioFile.id }) {
             audioFiles[index].hasBeenPlayed = true
             saveAudioFiles()
+        }
+    }
+
+    private func setupAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("Failed to set audio session category: \(error)")
         }
     }
 }
@@ -471,7 +484,7 @@ struct AudioFileView: View {
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "dd-MM-yy"
+        formatter.dateFormat = "MM-dd-yy"
         return formatter.string(from: date)
     }
     
@@ -534,9 +547,13 @@ struct ThemeButton: View {
             Text(theme)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color.gray.opacity(0.3))
-                .foregroundColor(isSelected ? .white : .black)
+                .background(isSelected ? Color.blue : Color.white.opacity(0.2))
+                .foregroundColor(.white) // This makes the text white
                 .cornerRadius(15)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 15)
+                        .stroke(Color.white, lineWidth: isSelected ? 0 : 1)
+                )
         }
     }
 }
@@ -574,7 +591,6 @@ struct ExpandingTextView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-
     class Coordinator: NSObject, UITextViewDelegate {
         var parent: ExpandingTextView
 
