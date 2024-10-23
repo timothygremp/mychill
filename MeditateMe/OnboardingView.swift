@@ -9,55 +9,61 @@ import SwiftUI
 import Lottie
 
 struct OnboardingView: View {
+    @Binding var isOnboardingComplete: Bool
+    @Binding var audioFiles: [AudioFileModel]
     @State private var name: String = ""
     @State private var pronunciation: String = ""
-    @Binding var isOnboardingComplete: Bool
     @FocusState private var focusedField: Field?
+    @State private var showFirstMeditationView = false
     
     enum Field {
         case name, pronunciation
     }
     
     var body: some View {
-        ZStack {
-            AnimatedGradientBackground()
-            
-            VStack(spacing: 20) {
-                LottieViewOnBoard(name: "flow_women")
-                    .frame(width: 200, height: 200)
+        if showFirstMeditationView {
+            FirstMeditationView(isOnboardingComplete: $isOnboardingComplete, audioFiles: $audioFiles)
+        } else {
+            ZStack {
+                AnimatedGradientBackground()
                 
-                Text("Welcome to My Meditation Pal")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                
-                VStack(spacing: 15) {
-                    StylishTextField(text: $name, placeholder: "Your First Name")
-                        .focused($focusedField, equals: .name)
-                }
-                .padding(.horizontal)
-                
-                Button(action: {
-                    UserDefaults.standard.set(name, forKey: "userName")
-                    UserDefaults.standard.set(pronunciation, forKey: "userPronunciation")
-                    isOnboardingComplete = true
-                }) {
-                    Text("Next")
-                        .font(.headline)
+                VStack(spacing: 20) {
+                    LottieViewOnBoard(name: "flow_women")
+                        .frame(width: 200, height: 200)
+                    
+                    Text("Welcome to My Meditation Pal")
+                        .font(.title)
+                        .fontWeight(.bold)
                         .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(name.isEmpty ? Color.gray : Color.blue)
-                        .cornerRadius(10)
+                        .multilineTextAlignment(.center)
+                    
+                    VStack(spacing: 15) {
+                        StylishTextField(text: $name, placeholder: "Your First Name")
+                            .focused($focusedField, equals: .name)
+                    }
+                    .padding(.horizontal)
+                    
+                    Button(action: {
+                        UserDefaults.standard.set(name, forKey: "userName")
+                        UserDefaults.standard.set(pronunciation, forKey: "userPronunciation")
+                        showFirstMeditationView = true
+                    }) {
+                        Text("Next")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(name.isEmpty ? Color.gray : Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .disabled(name.isEmpty)
+                    .padding(.horizontal)
                 }
-                .disabled(name.isEmpty)
-                .padding(.horizontal)
+                .padding()
             }
-            .padding()
-        }
-        .onTapGesture {
-            focusedField = nil // Dismiss keyboard when tapping outside of text fields
+            .onTapGesture {
+                focusedField = nil // Dismiss keyboard when tapping outside of text fields
+            }
         }
     }
 }
