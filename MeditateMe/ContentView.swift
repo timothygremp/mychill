@@ -10,6 +10,34 @@ import AVFoundation
 import Lottie
 import UIKit
 
+class MeditationCredits: ObservableObject {
+    @Published var creditsUsed: Int {
+        didSet {
+            UserDefaults.standard.set(creditsUsed, forKey: "creditsUsed")
+        }
+    }
+    
+    let maxFreeCredits = 5
+    
+    init() {
+        creditsUsed = UserDefaults.standard.integer(forKey: "creditsUsed")
+    }
+    
+    func useCredit() {
+        if creditsUsed < maxFreeCredits {
+            creditsUsed += 1
+        }
+    }
+    
+    var remainingCredits: Int {
+        return max(0, maxFreeCredits - creditsUsed)
+    }
+    
+    var isPaywallReached: Bool {
+        return creditsUsed >= maxFreeCredits
+    }
+}
+
 struct ContentView: View {
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete = false
     @State private var message = ""
@@ -30,6 +58,8 @@ struct ContentView: View {
     @State private var textViewHeight: CGFloat = 40
     @AppStorage("userName") private var userName: String = ""
     @AppStorage("audioFiles") private var audioFilesData: Data = Data()
+    @StateObject private var meditationCredits = MeditationCredits()
+    @State private var showPaywall = false
     
     var body: some View {
         ZStack {
@@ -78,6 +108,12 @@ struct ContentView: View {
                         .fill(Color.white)
                         .frame(height: 1)
                         .padding(.vertical, 10)
+
+                    // Credits info
+                    Text("\(meditationCredits.creditsUsed) of \(meditationCredits.maxFreeCredits) free credits used")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                        .padding(.bottom, 10)
 
                     // Themes section
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -129,7 +165,7 @@ struct ContentView: View {
                     }
                 )
             } else {
-                OnboardingView(isOnboardingComplete: $isOnboardingComplete, audioFiles: $audioFiles)
+                OnboardingView(isOnboardingComplete: $isOnboardingComplete, audioFiles: $audioFiles, meditationCredits: meditationCredits)
             }
         }
         .overlay(
@@ -139,6 +175,9 @@ struct ContentView: View {
         .onAppear {
             loadAudioFiles()
             setupAudioSession()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
     }
 
@@ -157,57 +196,64 @@ struct ContentView: View {
 //    http://localhost:3000/generate-meditation
 
     func sendMessage() {
-        // Dismiss the keyboard
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        
-        isGeneratingMeditation = true
-        sentMessage = message
-        let currentMessage = message // Store the current message
-        message = "" // Clear the input field immediately
-        
-        let url = URL(string: "http://localhost:3000/generate-meditation")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let body: [String: Any] = [
-            "message": currentMessage,
-            "themes": Array(selectedThemes),
-            "userName": userName // Add this line
-        ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                isGeneratingMeditation = false
-                if let data = data {
-                    do {
-                        let fileName = "meditation_\(Date().timeIntervalSince1970).mp3"
-                        let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
-                        try data.write(to: fileURL)
-                        
-                        let newAudioFile = AudioFileModel(
-                            id: UUID(),
-                            fileName: fileName,
-                            creationDate: Date(),
-                            message: currentMessage,
-                            themes: Array(selectedThemes),
-                            isFavorite: false,
-                            hasBeenPlayed: false
-                        )
-                        audioFiles.insert(newAudioFile, at: 0)
-                        saveAudioFiles()
-                        
-                        // Reset the view
-                        selectedThemes.removeAll()
-                        isConversationActive = false
-                        sentMessage = nil
-                    } catch {
-                        print("Error saving audio file: \(error)")
+        if meditationCredits.isPaywallReached {
+            showPaywall = true
+        } else {
+            // Existing send message logic
+            meditationCredits.useCredit()
+            
+            // Dismiss the keyboard
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            
+            isGeneratingMeditation = true
+            sentMessage = message
+            let currentMessage = message // Store the current message
+            message = "" // Clear the input field immediately
+            
+            let url = URL(string: "http://localhost:3000/generate-meditation")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let body: [String: Any] = [
+                "message": currentMessage,
+                "themes": Array(selectedThemes),
+                "userName": userName // Add this line
+            ]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {
+                    isGeneratingMeditation = false
+                    if let data = data {
+                        do {
+                            let fileName = "meditation_\(Date().timeIntervalSince1970).mp3"
+                            let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+                            try data.write(to: fileURL)
+                            
+                            let newAudioFile = AudioFileModel(
+                                id: UUID(),
+                                fileName: fileName,
+                                creationDate: Date(),
+                                message: currentMessage,
+                                themes: Array(selectedThemes),
+                                isFavorite: false,
+                                hasBeenPlayed: false
+                            )
+                            audioFiles.insert(newAudioFile, at: 0)
+                            saveAudioFiles()
+                            
+                            // Reset the view
+                            selectedThemes.removeAll()
+                            isConversationActive = false
+                            sentMessage = nil
+                        } catch {
+                            print("Error saving audio file: \(error)")
+                        }
                     }
                 }
-            }
-        }.resume()
+            }.resume()
+        }
     }
 
     func saveAudioFiles() {
@@ -822,3 +868,24 @@ extension UIColor {
     }
 }
 
+struct PaywallView: View {
+    var body: some View {
+        VStack {
+            Text("Upgrade to Premium")
+                .font(.title)
+                .padding()
+            
+            Text("You've used all your free credits. Upgrade to create unlimited meditations!")
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Button("Upgrade Now") {
+                // Implement your in-app purchase logic here
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+    }
+}

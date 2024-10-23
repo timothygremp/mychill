@@ -11,6 +11,7 @@ import Lottie
 struct OnboardingView: View {
     @Binding var isOnboardingComplete: Bool
     @Binding var audioFiles: [AudioFileModel]
+    @ObservedObject var meditationCredits: MeditationCredits
     @State private var name: String = ""
     @State private var pronunciation: String = ""
     @FocusState private var focusedField: Field?
@@ -49,6 +50,7 @@ struct OnboardingView: View {
                         Button(action: {
                             UserDefaults.standard.set(name, forKey: "userName")
                             UserDefaults.standard.set(pronunciation, forKey: "userPronunciation")
+                            meditationCredits.useCredit() // Use a credit when completing onboarding
                             showFirstMeditationView = true
                         }) {
                             Text("Next")
