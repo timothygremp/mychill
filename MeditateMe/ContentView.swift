@@ -18,8 +18,7 @@ struct ContentView: View {
     @State private var audioFiles: [AudioFileModel] = []
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
-    // Add this property to store the number of background images
-    let totalBackgroundImages = 6 // Change this to match the number of background images you have
+    let totalBackgroundImages = 6
 
     let columns = [
         GridItem(.flexible()),
@@ -30,13 +29,14 @@ struct ContentView: View {
     @State private var sentMessage: String?
     @State private var textViewHeight: CGFloat = 40
     @AppStorage("userName") private var userName: String = ""
+    @AppStorage("audioFiles") private var audioFilesData: Data = Data()
     
     var body: some View {
         ZStack {
             AnimatedGradientBackground()
             
             if isOnboardingComplete {
-                VStack(spacing: 0) {  // Set spacing to 0 to control it manually
+                VStack(spacing: 0) {
                     // List of audio files or "No Meditations" message
                     if audioFiles.isEmpty {
                         VStack {
@@ -129,7 +129,7 @@ struct ContentView: View {
                     }
                 )
             } else {
-                OnboardingView(isOnboardingComplete: $isOnboardingComplete)
+                OnboardingView(isOnboardingComplete: $isOnboardingComplete, audioFiles: $audioFiles)
             }
         }
         .overlay(
@@ -142,12 +142,17 @@ struct ContentView: View {
         }
     }
 
+    private func loadAudioFiles() {
+        if let decodedAudioFiles = try? JSONDecoder().decode([AudioFileModel].self, from: audioFilesData) {
+            audioFiles = decodedAudioFiles
+        }
+    }
+
     // Add this function to get the background image name
     private func getBackgroundImageName(for index: Int) -> String {
         let adjustedIndex = (index % totalBackgroundImages) + 1
         return "background\(adjustedIndex)"
     }
-
     // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
 //    http://localhost:3000/generate-meditation
 
@@ -202,14 +207,6 @@ struct ContentView: View {
                 }
             }
         }.resume()
-    }
-
-    func loadAudioFiles() {
-        if let data = UserDefaults.standard.data(forKey: "audioFiles") {
-            if let decodedAudioFiles = try? JSONDecoder().decode([AudioFileModel].self, from: data) {
-                audioFiles = decodedAudioFiles
-            }
-        }
     }
 
     func saveAudioFiles() {
