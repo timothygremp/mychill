@@ -19,7 +19,7 @@ struct ContentView: View {
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
     // Add this property to store the number of background images
-    let totalBackgroundImages = 5 // Change this to match the number of background images you have
+    let totalBackgroundImages = 6 // Change this to match the number of background images you have
 
     let columns = [
         GridItem(.flexible()),
@@ -29,6 +29,7 @@ struct ContentView: View {
     @State private var isConversationActive = false
     @State private var sentMessage: String?
     @State private var textViewHeight: CGFloat = 40
+    @AppStorage("userName") private var userName: String = ""
     
     var body: some View {
         ZStack {
@@ -36,28 +37,47 @@ struct ContentView: View {
             
             if isOnboardingComplete {
                 VStack(spacing: 0) {  // Set spacing to 0 to control it manually
-                    // List of audio files
-                    ScrollView {
-                        LazyVGrid(columns: columns, spacing: 20) {
-                            ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
-                                AudioFileView(
-                                    audioFile: binding(for: audioFile),
-                                    backgroundImageName: getBackgroundImageName(for: index),
-                                    onDelete: { deleteAudioFile(audioFile) },
-                                    onToggleFavorite: { toggleFavorite(audioFile) },
-                                    onPlay: { markAsPlayed($0) }
-                                )
-                                .aspectRatio(1/1.618, contentMode: .fit)
-                            }
+                    // List of audio files or "No Meditations" message
+                    if audioFiles.isEmpty {
+                        VStack {
+                            Spacer()
+                            Text("Hello, \(userName)👋")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.bottom, 8)
+                            Text("No meditations/affirmations yet🥺")
+                                .font(.title3)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                            Spacer()
                         }
                         .padding()
+                    } else {
+                        ScrollView {
+                            LazyVGrid(columns: columns, spacing: 20) {
+                                ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
+                                    AudioFileView(
+                                        audioFile: binding(for: audioFile),
+                                        backgroundImageName: getBackgroundImageName(for: index),
+                                        onDelete: { deleteAudioFile(audioFile) },
+                                        onToggleFavorite: { toggleFavorite(audioFile) },
+                                        onPlay: { markAsPlayed($0) }
+                                    )
+                                    .aspectRatio(1/1.618, contentMode: .fit)
+                                }
+                            }
+                            .padding()
+                        }
                     }
 
-                    // Thicker white divider
+                    Spacer(minLength: 0)
+
+                    // Thinner white divider
                     Rectangle()
                         .fill(Color.white)
-                        .frame(height: 2) // Increased thickness
-                        .padding(.vertical, 10) // Adjusted padding
+                        .frame(height: 1)
+                        .padding(.vertical, 10)
 
                     // Themes section
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -75,6 +95,8 @@ struct ContentView: View {
                         .padding(.horizontal)
                     }
                     .frame(height: 50)
+
+                    Spacer(minLength: 0)
 
                     // Message input and send button
                     HStack(alignment: .bottom) {
