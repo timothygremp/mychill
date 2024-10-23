@@ -165,14 +165,15 @@ struct ContentView: View {
         let currentMessage = message // Store the current message
         message = "" // Clear the input field immediately
         
-        let url = URL(string: "https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation")!
+        let url = URL(string: "http://localhost:3000/generate-meditation")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
-            "message": currentMessage, // Use the stored message
-            "themes": Array(selectedThemes)
+            "message": currentMessage,
+            "themes": Array(selectedThemes),
+            "userName": userName // Add this line
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         

@@ -10,6 +10,7 @@ struct FirstMeditationView: View {
     @State private var isGeneratingMeditation = false
     @State private var meditationGenerated = false
     @AppStorage("audioFiles") private var audioFilesData: Data = Data()
+    @AppStorage("userName") private var userName: String = ""
     
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
@@ -89,20 +90,24 @@ struct FirstMeditationView: View {
             }
         }
     }
+
+    // http://localhost:3000/generate-meditation
+    // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
     
     func generateMeditation() {
         isGeneratingMeditation = true
         let currentMessage = message
         message = ""
         
-        let url = URL(string: "https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation")!
+        let url = URL(string: "http://localhost:3000/generate-meditation")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
             "message": currentMessage,
-            "themes": Array(selectedThemes)
+            "themes": Array(selectedThemes),
+            "userName": userName
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
