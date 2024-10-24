@@ -181,6 +181,8 @@ struct FirstMeditationView: View {
                         let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
                         try data.write(to: fileURL)
                         
+                        let newBackgroundImageName = "background1" // Always use background1 for the first meditation
+                        
                         let newAudioFile = AudioFileModel(
                             id: UUID(),
                             fileName: fileName,
@@ -188,7 +190,8 @@ struct FirstMeditationView: View {
                             message: currentMessage,
                             themes: Array(selectedThemes),
                             isFavorite: false,
-                            hasBeenPlayed: false
+                            hasBeenPlayed: false,
+                            backgroundImageName: newBackgroundImageName
                         )
                         
                         // Update both audioFiles and audioFilesData
