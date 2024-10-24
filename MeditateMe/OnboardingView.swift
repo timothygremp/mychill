@@ -28,7 +28,7 @@ struct OnboardingView: View {
             FirstMeditationView(isOnboardingComplete: $isOnboardingComplete, audioFiles: $audioFiles)
         } else {
             ZStack {
-                AnimatedGradientBackground()
+                GradientBackgroundView()
                 
                 ScrollView {
                     VStack(spacing: 20) {

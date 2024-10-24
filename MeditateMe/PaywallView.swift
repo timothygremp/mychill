@@ -141,8 +141,7 @@ struct PaywallView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                .edgesIgnoringSafeArea(.all)
+            GradientBackgroundView()
             
             VStack(spacing: 20) {
                 LottieView(name: "flow_women", loopMode: .loop)

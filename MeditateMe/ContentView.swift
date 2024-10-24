@@ -61,7 +61,7 @@ struct ContentView: View {
     
     var body: some View {
         ZStack {
-            AnimatedGradientBackground()
+            GradientBackgroundView()
             
             if isOnboardingComplete {
                 VStack(spacing: 0) {
@@ -877,6 +877,7 @@ extension UIColor {
         )
     }
 }
+
 
 
 
