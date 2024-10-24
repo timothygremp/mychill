@@ -21,9 +21,7 @@ class MeditationCredits: ObservableObject {
     let maxFreeCredits = 5
     
     init() {
-        // For testing: Set initial credits to 5 (maxed out)
-        creditsUsed = 5
-        UserDefaults.standard.set(creditsUsed, forKey: "creditsUsed")
+        creditsUsed = UserDefaults.standard.integer(forKey: "creditsUsed")
     }
     
     func useCredit() {
@@ -34,10 +32,6 @@ class MeditationCredits: ObservableObject {
     
     var remainingCredits: Int {
         return max(0, maxFreeCredits - creditsUsed)
-    }
-    
-    var isPaywallReached: Bool {
-        return creditsUsed >= maxFreeCredits
     }
 }
 
@@ -63,6 +57,7 @@ struct ContentView: View {
     @AppStorage("audioFiles") private var audioFilesData: Data = Data()
     @StateObject private var meditationCredits = MeditationCredits()
     @State private var showPaywall = false
+    @StateObject private var purchaseManager = PurchaseManager()
     
     var body: some View {
         ZStack {
@@ -108,15 +103,17 @@ struct ContentView: View {
 
                     // Thinner white divider
                     Rectangle()
-                        .fill(Color.white)
+                        .fill(Color.white.opacity(0.3))
                         .frame(height: 1)
                         .padding(.vertical, 10)
 
-                    // Credits info
-                    Text("\(meditationCredits.creditsUsed) of \(meditationCredits.maxFreeCredits) free credits used")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                        .padding(.bottom, 10)
+                    // Only show credits info if not subscribed
+                    if !purchaseManager.isSubscribed {
+                        Text("\(meditationCredits.creditsUsed) of \(meditationCredits.maxFreeCredits) free credits used")
+                            .font(.caption)
+                            .foregroundColor(.white)
+                            .padding(.horizontal)
+                    }
 
                     // Themes section
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -178,9 +175,14 @@ struct ContentView: View {
         .onAppear {
             loadAudioFiles()
             setupAudioSession()
+            Task {
+                purchaseManager.resetSubscriptionCheck()
+                await purchaseManager.updateSubscriptionStatus()
+                print("ContentView appeared, isSubscribed: \(purchaseManager.isSubscribed)")
+            }
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(purchaseManager: purchaseManager)
         }
     }
 
@@ -199,64 +201,68 @@ struct ContentView: View {
 //    http://localhost:3000/generate-meditation
 
     func sendMessage() {
-        if meditationCredits.isPaywallReached {
-            // Superwall.shared.register(event: "campaign_trigger")
-            showPaywall = true
-        } else {
-            // Existing send message logic
-            meditationCredits.useCredit()
-            
-            // Dismiss the keyboard
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            
-            isGeneratingMeditation = true
-            sentMessage = message
-            let currentMessage = message // Store the current message
-            message = "" // Clear the input field immediately
-            
-            let url = URL(string: "http://localhost:3000/generate-meditation")!
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            let body: [String: Any] = [
-                "message": currentMessage,
-                "themes": Array(selectedThemes),
-                "userName": userName // Add this line
-            ]
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                DispatchQueue.main.async {
-                    isGeneratingMeditation = false
-                    if let data = data {
-                        do {
-                            let fileName = "meditation_\(Date().timeIntervalSince1970).mp3"
-                            let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
-                            try data.write(to: fileURL)
-                            
-                            let newAudioFile = AudioFileModel(
-                                id: UUID(),
-                                fileName: fileName,
-                                creationDate: Date(),
-                                message: currentMessage,
-                                themes: Array(selectedThemes),
-                                isFavorite: false,
-                                hasBeenPlayed: false
-                            )
-                            audioFiles.insert(newAudioFile, at: 0)
-                            saveAudioFiles()
-                            
-                            // Reset the view
-                            selectedThemes.removeAll()
-                            isConversationActive = false
-                            sentMessage = nil
-                        } catch {
-                            print("Error saving audio file: \(error)")
+        Task {
+            purchaseManager.resetSubscriptionCheck()
+            await purchaseManager.updateSubscriptionStatus()
+            print("Send button pressed, isSubscribed: \(purchaseManager.isSubscribed)")
+            if purchaseManager.isSubscribed || meditationCredits.remainingCredits > 0 {
+                if !purchaseManager.isSubscribed {
+                    meditationCredits.useCredit()
+                    print("Used a credit, remaining: \(meditationCredits.remainingCredits)")
+                }
+                // Existing send message logic
+                isGeneratingMeditation = true
+                sentMessage = message
+                let currentMessage = message // Store the current message
+                message = "" // Clear the input field immediately
+                
+                let url = URL(string: "https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation")!
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                let body: [String: Any] = [
+                    "message": currentMessage,
+                    "themes": Array(selectedThemes),
+                    "userName": userName // Add this line
+                ]
+                request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+                
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    DispatchQueue.main.async {
+                        isGeneratingMeditation = false
+                        if let data = data {
+                            do {
+                                let fileName = "meditation_\(Date().timeIntervalSince1970).mp3"
+                                let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
+                                try data.write(to: fileURL)
+                                
+                                let newAudioFile = AudioFileModel(
+                                    id: UUID(),
+                                    fileName: fileName,
+                                    creationDate: Date(),
+                                    message: currentMessage,
+                                    themes: Array(selectedThemes),
+                                    isFavorite: false,
+                                    hasBeenPlayed: false
+                                )
+                                audioFiles.insert(newAudioFile, at: 0)
+                                saveAudioFiles()
+                                
+                                // Reset the view
+                                selectedThemes.removeAll()
+                                isConversationActive = false
+                                sentMessage = nil
+                            } catch {
+                                print("Error saving audio file: \(error)")
+                            }
                         }
                     }
-                }
-            }.resume()
+                }.resume()
+            } else {
+                print("Showing paywall")
+                showPaywall = true
+            }
         }
     }
 
@@ -871,5 +877,13 @@ extension UIColor {
         )
     }
 }
+
+
+
+
+
+
+
+
 
 
