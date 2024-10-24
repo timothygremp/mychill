@@ -30,63 +30,93 @@ struct OnboardingView: View {
             ZStack {
                 GradientBackgroundView()
                 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        LottieViewOnBoard(name: "flow_women")
-                            .frame(width: 200, height: 200)
-                        
-                        Text("Welcome to My Meditation Pal")
-                            .font(.title)
-                            .fontWeight(.bold)
+                VStack(spacing: 20) {
+                    LottieViewOnBoard(name: "flow_women")
+                        .frame(width: 300, height: 300)
+                    
+                    VStack(spacing: 5) {
+                        Text("Med2Chill")
+                            .font(.system(size: 50, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
                         
-                        VStack(spacing: 15) {
-                            StylishTextField(text: $name, placeholder: "Your First Name")
-                                .focused($focusedField, equals: .name)
-                        }
-                        .padding(.horizontal)
-                        
-                        Button(action: {
-                            UserDefaults.standard.set(name, forKey: "userName")
-                            UserDefaults.standard.set(pronunciation, forKey: "userPronunciation")
-                            meditationCredits.useCredit() // Use a credit when completing onboarding
-                            showFirstMeditationView = true
-                        }) {
-                            Text("Next")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .padding()
-                                .frame(minWidth: 0, maxWidth: .infinity)
-                                .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
-                                .cornerRadius(25)
-                                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
-                        }
-                        .padding(.horizontal)
-                        .scaleEffect(animationAmount)
-                        .animation(
-                            Animation.easeInOut(duration: 1.5)
-                                .repeatForever(autoreverses: true),
-                            value: animationAmount
-                        )
-                        .disabled(name.isEmpty)
-                        .opacity(name.isEmpty ? 0.5 : 1.0)
+                        Text("Custom audio meditations inspired by you")
+                            .font(.system(size: 22, weight: .medium, design: .rounded))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
                     }
-                    .padding()
-                    .padding(.bottom, keyboardHeight)
+                    .padding(.top, -25)
+                    .padding(.horizontal)
+                    
+                    VStack(spacing: 15) {
+                        StylishTextField(text: $name, placeholder: "Your First Name")
+                            .focused($focusedField, equals: .name)
+                    }
+                    .padding(.horizontal)
+                    
+                    Button(action: {
+                        UserDefaults.standard.set(name, forKey: "userName")
+                        UserDefaults.standard.set(pronunciation, forKey: "userPronunciation")
+                        meditationCredits.useCredit()
+                        showFirstMeditationView = true
+                    }) {
+                        Text("Next")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(minWidth: 0, maxWidth: .infinity)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]), startPoint: .leading, endPoint: .trailing))
+                            .cornerRadius(25)
+                            .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                    .padding(.horizontal)
+                    .scaleEffect(animationAmount)
+                    .animation(
+                        Animation.easeInOut(duration: 1.5)
+                            .repeatForever(autoreverses: true),
+                        value: animationAmount
+                    )
+                    .disabled(name.isEmpty)
+                    .opacity(name.isEmpty ? 0.5 : 1.0)
+                    
+                    Spacer(minLength: 0)
                 }
+                .padding()
+                .offset(y: -keyboardHeight / 2)
             }
             .onTapGesture {
                 focusedField = nil
             }
             .onAppear {
-//                setupKeyboardObservers()
+                setupKeyboardObservers()
                 self.animationAmount = 1.1
             }
             .onDisappear {
-//                removeKeyboardObservers()
+                removeKeyboardObservers()
             }
         }
+    }
+    
+    private func setupKeyboardObservers() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+            if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
+                let keyboardRectangle = keyboardFrame.cgRectValue
+                keyboardHeight = keyboardRectangle.height
+            }
+        }
+        
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            keyboardHeight = 0
+        }
+    }
+
+    private func removeKeyboardObservers() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 
