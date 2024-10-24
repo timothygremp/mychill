@@ -13,6 +13,7 @@ struct FirstMeditationView: View {
     @AppStorage("userName") private var userName: String = ""
     @State private var keyboardHeight: CGFloat = 0
     @State private var animationAmount: CGFloat = 1
+    @FocusState private var isInputFocused: Bool
     
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
@@ -20,123 +21,106 @@ struct FirstMeditationView: View {
         ZStack {
             GradientBackgroundView()
             
-            VStack(spacing: 20) {
-                Text("Hello, \(userName)👋")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .padding(.bottom, 8)
-                
-                Text("Let's Create Your First Meditation🥳")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                
-                VStack(alignment: .leading, spacing: 15) {
-                    Text("To Get Started:")
-                        .font(.headline)
+            ScrollView {
+                VStack(spacing: 15) {
+                    Text("Hello, \(userName)👋")
+                        .font(.title2)
                         .foregroundColor(.white)
-                        .padding(.bottom, 5)
+                        .multilineTextAlignment(.center)
                     
-                    InstructionRow(icon: "1.circle.fill", text: "Pick a theme (scroll right for more options).")
-
-                    Text("OR")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
+                    Text("Let's Create Your First Meditation🥳")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
                     
-                    InstructionRow(icon: "2.circle.fill", text: "Type a message describing what you'd like your meditation/affirmation to be about. Examples like: I'm stressed about school or having family issues. You can make it about anything. ")
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("To Get Started:")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.bottom, 5)
+                        
+                        InstructionRow(icon: "1.circle.fill", text: "Type a message describing what you'd like your meditation/affirmation to be about. Examples like: I'm stressed about school or having family issues. You can make it about anything. You can also add as many selected themes as you want too. ")
 
-                     Text("OR")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-
-                    InstructionRow(icon: "3.circle.fill", text: "You can select a theme AND add a message.")
-
-                    InstructionRow(icon: "4.circle.fill", text: "Hit the send button and wait for your meditation to be created!😍")
-                }
-                .padding()
-                .background(Color.white.opacity(0.1))
-                .cornerRadius(15)
-                .padding(.horizontal)
-                
-                // Themes section
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
-                        ForEach(availableThemes, id: \.self) { theme in
-                            ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
-                                if selectedThemes.contains(theme) {
-                                    selectedThemes.remove(theme)
-                                } else {
-                                    selectedThemes.insert(theme)
+                        InstructionRow(icon: "2.circle.fill", text: "Hit the send button and wait for your meditation to be created!😍")
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(15)
+                    
+                    // Themes section
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(availableThemes, id: \.self) { theme in
+                                ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
+                                    if selectedThemes.contains(theme) {
+                                        selectedThemes.remove(theme)
+                                    } else {
+                                        selectedThemes.insert(theme)
+                                    }
                                 }
                             }
                         }
                     }
-                    .padding(.horizontal)
-                }
-                .frame(height: 50)
-                
-                Spacer() // This will push everything up
-                
-                // Message input and send button
-                HStack(alignment: .bottom) {
-                    ExpandingTextView(text: $message, height: $textViewHeight) {
-                        // Handle done action
-                    }
-                    .frame(height: textViewHeight)
-                    .background(Color(UIColor.systemBackground).opacity(0.1))
-                    .cornerRadius(20)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                    )
+                    .frame(height: 50)
                     
-                    Button(action: generateMeditation) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .foregroundColor(.white)
-                            .font(.system(size: 30))
+                    // Message input and send button
+                    HStack(alignment: .bottom) {
+                        ExpandingTextView(text: $message, height: $textViewHeight) {
+                            // Handle done action
+                        }
+                        .frame(height: textViewHeight)
+                        .background(Color(UIColor.systemBackground).opacity(0.1))
+                        .cornerRadius(20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .focused($isInputFocused)
+                        
+                        Button(action: {
+                            generateMeditation()
+                            isInputFocused = false // Dismiss keyboard
+                        }) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .foregroundColor(.white)
+                                .font(.system(size: 30))
+                        }
+                        .padding(.leading, 8)
                     }
-                    .padding(.leading, 8)
+                    
+                    if meditationGenerated {
+                        Button(action: {
+                            isOnboardingComplete = true
+                        }) {
+                            Text("Go to My First Meditation")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(minWidth: 0, maxWidth: .infinity)
+                                .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                                .cornerRadius(25)
+                                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                        }
+                        .scaleEffect(animationAmount)
+                        .animation(
+                            Animation.easeInOut(duration: 1.5)
+                                .repeatForever(autoreverses: true),
+                            value: animationAmount
+                        )
+                        .onAppear {
+                            self.animationAmount = 1.1
+                        }
+                    }
                 }
-                .padding(.horizontal)
-                
-                if meditationGenerated {
-                    Button(action: {
-                        isOnboardingComplete = true
-                    }) {
-                        Text("Go to My First Meditation")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(minWidth: 0, maxWidth: .infinity)
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
-                            .cornerRadius(25)
-                            .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
-                    }
-                    .padding(.horizontal)
-                    .scaleEffect(animationAmount)
-                    .animation(
-                        Animation.easeInOut(duration: 1.5)
-                            .repeatForever(autoreverses: true),
-                        value: animationAmount
-                    )
-                    .onAppear {
-                        self.animationAmount = 1.1
-                    }
-                }
-                
-                Spacer()
+                .padding()
+                .offset(y: -keyboardHeight / 2)
             }
-            .padding()
-            .offset(y: -keyboardHeight) // This will move the entire VStack up
             
             if isGeneratingMeditation {
                 LoadingOverlay()
             }
         }
-        .ignoresSafeArea(.keyboard) // This allows content to go under the keyboard
+        .ignoresSafeArea(.keyboard)
         .onAppear {
             setupKeyboardObservers()
         }
@@ -171,6 +155,7 @@ struct FirstMeditationView: View {
     // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
     
     func generateMeditation() {
+        isInputFocused = false // Dismiss keyboard
         isGeneratingMeditation = true
         let currentMessage = message
         message = ""
