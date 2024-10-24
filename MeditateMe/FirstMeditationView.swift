@@ -18,7 +18,7 @@ struct FirstMeditationView: View {
     
     var body: some View {
         ZStack {
-            AnimatedGradientBackground()
+            GradientBackgroundView()
             
             VStack(spacing: 20) {
                 Text("Hello, \(userName)👋")
