@@ -43,7 +43,7 @@ struct ContentView: View {
     @State private var audioFiles: [AudioFileModel] = []
     let availableThemes = ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
     
-    let totalBackgroundImages = 6
+    let totalBackgroundImages = 5
 
     let columns = [
         GridItem(.flexible()),
@@ -58,6 +58,7 @@ struct ContentView: View {
     @StateObject private var meditationCredits = MeditationCredits()
     @State private var showPaywall = false
     @StateObject private var purchaseManager = PurchaseManager()
+    @State private var lastUsedBackgroundIndex: Int = 0
     
     var body: some View {
         ZStack {
@@ -87,7 +88,7 @@ struct ContentView: View {
                                 ForEach(Array(audioFiles.enumerated()), id: \.element.id) { index, audioFile in
                                     AudioFileView(
                                         audioFile: binding(for: audioFile),
-                                        backgroundImageName: getBackgroundImageName(for: index),
+                                        backgroundImageName: audioFile.backgroundImageName,
                                         onDelete: { deleteAudioFile(audioFile) },
                                         onToggleFavorite: { toggleFavorite(audioFile) },
                                         onPlay: { markAsPlayed($0) }
@@ -193,9 +194,14 @@ struct ContentView: View {
     }
 
     // Add this function to get the background image name
-    private func getBackgroundImageName(for index: Int) -> String {
-        let adjustedIndex = (index % totalBackgroundImages) + 1
-        return "background\(adjustedIndex)"
+    private func getBackgroundImageName(for index: Int, isNewFile: Bool = false) -> String {
+        if isNewFile {
+            lastUsedBackgroundIndex = (lastUsedBackgroundIndex - 1 + totalBackgroundImages) % totalBackgroundImages
+            return "background\(lastUsedBackgroundIndex + 1)"
+        } else {
+            let adjustedIndex = (index % totalBackgroundImages) + 1
+            return "background\(adjustedIndex)"
+        }
     }
     // https://us-central1-meditation-438805.cloudfunctions.net/generate-meditation
 //    http://localhost:3000/generate-meditation
@@ -237,6 +243,8 @@ struct ContentView: View {
                                 let fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
                                 try data.write(to: fileURL)
                                 
+                                let newBackgroundImageName = getNextBackgroundImageName()
+                                
                                 let newAudioFile = AudioFileModel(
                                     id: UUID(),
                                     fileName: fileName,
@@ -244,7 +252,8 @@ struct ContentView: View {
                                     message: currentMessage,
                                     themes: Array(selectedThemes),
                                     isFavorite: false,
-                                    hasBeenPlayed: false
+                                    hasBeenPlayed: false,
+                                    backgroundImageName: newBackgroundImageName
                                 )
                                 audioFiles.insert(newAudioFile, at: 0)
                                 saveAudioFiles()
@@ -314,6 +323,12 @@ struct ContentView: View {
         } catch {
             print("Failed to set audio session category: \(error)")
         }
+    }
+
+    func getNextBackgroundImageName() -> String {
+        let lastBackgroundNumber = audioFiles.first?.backgroundImageName.dropFirst(10).prefix(1) ?? "0"
+        let nextNumber = ((Int(lastBackgroundNumber) ?? 0) % 6) + 1
+        return "background\(nextNumber)"
     }
 }
 
@@ -606,7 +621,8 @@ struct AudioFileModel: Identifiable, Codable {
     let message: String
     let themes: [String]
     var isFavorite: Bool
-    var hasBeenPlayed: Bool  // This should be var, not let
+    var hasBeenPlayed: Bool
+    let backgroundImageName: String
     
     var url: URL {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent(fileName)
@@ -877,6 +893,11 @@ extension UIColor {
         )
     }
 }
+
+
+
+
+
 
 
 
