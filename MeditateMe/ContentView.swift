@@ -629,26 +629,7 @@ struct AudioFileModel: Identifiable, Codable {
     }
 }
 
-struct ThemeButton: View {
-    let theme: String
-    let isSelected: Bool
-    let action: () -> Void
 
-    var body: some View {
-        Button(action: action) {
-            Text(theme)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color.white.opacity(0.2))
-                .foregroundColor(.white) // This makes the text white
-                .cornerRadius(15)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color.white, lineWidth: isSelected ? 0 : 1)
-                )
-        }
-    }
-}
 
 struct ExpandingTextView: UIViewRepresentable {
     @Binding var text: String
@@ -893,6 +874,7 @@ extension UIColor {
         )
     }
 }
+
 
 
 

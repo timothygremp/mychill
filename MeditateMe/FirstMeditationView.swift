@@ -60,8 +60,8 @@ struct FirstMeditationView: View {
                                 }
                             }
                         }
+                        .padding(.horizontal)
                     }
-                    .frame(height: 50)
                     
                     // Message input and send button
                     HStack(alignment: .bottom) {
@@ -97,7 +97,7 @@ struct FirstMeditationView: View {
                                 .foregroundColor(.white)
                                 .padding()
                                 .frame(minWidth: 0, maxWidth: .infinity)
-                                .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
+                                .background(LinearGradient(gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]), startPoint: .leading, endPoint: .trailing))
                                 .cornerRadius(25)
                                 .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                         }
