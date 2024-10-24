@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import Lottie
 
 class PurchaseManager: ObservableObject {
     @Published var products: [StoreKit.Product] = []
@@ -114,6 +115,18 @@ class PurchaseManager: ObservableObject {
             return safe
         }
     }
+    
+    func restorePurchases() async {
+        print("Attempting to restore purchases...")
+        do {
+            try await AppStore.sync()
+            self.resetSubscriptionCheck()
+            await self.updateSubscriptionStatus()
+            print("Restore completed. Subscription status: \(self.isSubscribed)")
+        } catch {
+            print("Failed to restore purchases: \(error)")
+        }
+    }
 }
 
 
@@ -122,87 +135,92 @@ struct PaywallView: View {
     @ObservedObject var purchaseManager: PurchaseManager
     @Environment(\.dismiss) var dismiss
     @State private var isPurchasing = false
-    @State private var animationAmount: CGFloat = 1
+    @State private var isRestoring = false
+    @State private var showAlert = false
+    @State private var alertMessage = ""
 
     var body: some View {
         ZStack {
-            // Gradient background
             LinearGradient(gradient: Gradient(colors: [Color.purple, Color.blue]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .edgesIgnoringSafeArea(.all)
             
-            ScrollView {
-                VStack(spacing: 30) {
-                    Text("Unlock Premium")
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 2)
-                    
-                    VStack(spacing: 20) {
-                        FeatureRow(iconName: "infinity", text: "Unlimited Meditations")
-                        FeatureRow(iconName: "wand.and.stars", text: "Exclusive Themes")
-                        FeatureRow(iconName: "chart.line.uptrend.xyaxis", text: "Progress Tracking")
-                    }
-                    .padding()
-                    .background(Color.white.opacity(0.2))
-                    .cornerRadius(20)
-                    .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                    
-                    if purchaseManager.products.isEmpty {
-                        ProgressView()
-                            .scaleEffect(1.5)
-                            .foregroundColor(.white)
-                    } else {
-                        ForEach(purchaseManager.products, id: \.id) { product in
-                            Button(action: {
-                                Task {
-                                    await purchaseProduct(product)
-                                }
-                            }) {
-                                Text("Subscribe Now - \(product.displayPrice)")
-                                    .font(.headline)
-                                    .foregroundColor(.purple)
-                                    .padding()
-                                    .frame(maxWidth: .infinity)
-                                    .background(Color.white)
-                                    .cornerRadius(15)
-                                    .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 3)
-                            }
-                            .scaleEffect(animationAmount)
-                            .animation(.spring(response: 0.4, dampingFraction: 0.6), value: animationAmount)
-                            .disabled(isPurchasing)
-                        }
-                    }
-                    
-                    Text("7-day free trial, then \(purchaseManager.products.first?.displayPrice ?? "$X.XX") / week")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
-                    
-                    Button("Restore Purchases") {
-                        Task {
-                            // Implement restore purchases functionality
-                        }
-                    }
-                    .font(.caption)
+            VStack(spacing: 20) {
+                LottieView(name: "flow_women", loopMode: .loop)
+                    .frame(width: 200, height: 200)
+                
+                Text("Unlock Premium")
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                
+                Text("Create unlimited meditations and keep your 100% custom meditation journey alive!")
+                    .font(.system(size: 18, weight: .medium, design: .rounded))
+                    .multilineTextAlignment(.center)
                     .foregroundColor(.white.opacity(0.8))
+                    .padding(.horizontal)
+                
+                if purchaseManager.products.isEmpty {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .foregroundColor(.white)
+                } else {
+                    ForEach(purchaseManager.products, id: \.id) { product in
+                        Button(action: {
+                            Task {
+                                await purchaseProduct(product)
+                            }
+                        }) {
+                            Text("Subscribe Now - \(product.displayPrice)/week")
+                                .font(.headline)
+                                .foregroundColor(.purple)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white)
+                                .cornerRadius(15)
+                        }
+                        .disabled(isPurchasing)
+                    }
                 }
-                .padding()
+                
+                Button("Restore Purchases") {
+                    Task {
+                        await restorePurchases()
+                    }
+                }
+                .font(.footnote)
+                .foregroundColor(.white.opacity(0.8))
+                .disabled(isRestoring)
+            }
+            .padding()
+            
+            // Dismiss button (X) in the upper left corner
+            VStack {
+                HStack {
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.white)
+                            .font(.system(size: 20, weight: .bold))
+                            .padding(10)
+                            .background(Color.black.opacity(0.3))
+                            .clipShape(Circle())
+                    }
+                    .padding(.leading, 20)
+                    .padding(.top, 20)
+                    Spacer()
+                }
+                Spacer()
             }
         }
-        .onAppear {
-            Task {
-                await purchaseManager.loadProducts()
-            }
-            withAnimation(Animation.easeInOut(duration: 1).repeatForever(autoreverses: true)) {
-                animationAmount = 1.05
-            }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Restore Purchases"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
         }
     }
-    
+
     func purchaseProduct(_ product: StoreKit.Product) async {
         isPurchasing = true
         do {
             if try await purchaseManager.purchase(product) {
-                print("Purchase completed, dismissing PaywallView")
                 dismiss()
             }
         } catch {
@@ -210,28 +228,17 @@ struct PaywallView: View {
         }
         isPurchasing = false
     }
-}
 
-struct FeatureRow: View {
-    let iconName: String
-    let text: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: iconName)
-                .foregroundColor(.white)
-                .font(.system(size: 22, weight: .semibold))
-                .frame(width: 30, height: 30)
-            Text(text)
-                .foregroundColor(.white)
-                .font(.system(size: 18, weight: .medium))
-            Spacer()
+    func restorePurchases() async {
+        isRestoring = true
+        await purchaseManager.restorePurchases()
+        if purchaseManager.isSubscribed {
+            alertMessage = "Your purchases have been restored successfully."
+            dismiss()
+        } else {
+            alertMessage = "No active subscriptions found to restore."
         }
+        isRestoring = false
+        showAlert = true
     }
 }
-
-//struct PaywallView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        PaywallView()
-//    }
-//}
