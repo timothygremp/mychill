@@ -664,7 +664,7 @@ struct ExpandingTextView: UIViewRepresentable {
         textView.returnKeyType = .done
         textView.textContainerInset = UIEdgeInsets(top: 8, left: 4, bottom: 8, right: 4)
         textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        textView.placeholder = "I'm stressed about..."
+        textView.placeholder = "  I'm stressed about..."
         textView.gradientColors = [UIColor(hex: "#9999ff"), UIColor(hex: "#cc99cc")]
         textView.textColor = .white
         return textView
