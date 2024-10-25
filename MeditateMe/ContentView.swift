@@ -18,7 +18,7 @@ class MeditationCredits: ObservableObject {
         }
     }
     
-    let maxFreeCredits = 5
+    let maxFreeCredits = 3  // Changed from 5 to 3
     
     init() {
         creditsUsed = UserDefaults.standard.integer(forKey: "creditsUsed")
@@ -874,6 +874,7 @@ extension UIColor {
         )
     }
 }
+
 
 
 
