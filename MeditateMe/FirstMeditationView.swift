@@ -45,7 +45,7 @@ struct FirstMeditationView: View {
                             .padding(.bottom, 5)
                         
                         InstructionRow(icon: "1.circle.fill", text: "Select a theme (scroll right for more)")
-                        InstructionRow(icon: "2.circle.fill", text: "Add a message with more detail about what's going on in your life. Examples like: I don't look the way I look or school is stressing me out. Add as much or little detail as you like.")
+                        InstructionRow(icon: "2.circle.fill", text: "Add a message with more detail about what's going on in your life. Examples like: I don't like the way I look or school is stressing me out. Add as much or little detail as you like.")
                         InstructionRow(icon: "3.circle.fill", text: "Hit the send button and wait for your custom meditation to be created.❤️")
                     }
                     .padding()
