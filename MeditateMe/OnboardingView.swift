@@ -35,7 +35,7 @@ struct OnboardingView: View {
                         .frame(width: 300, height: 300)
                     
                     VStack(spacing: 5) {
-                        Text("Med2Chill")
+                        Text("MyChill")
                             .font(.system(size: 50, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
