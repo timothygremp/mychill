@@ -188,6 +188,17 @@ struct PaywallView: View {
                 .font(.footnote)
                 .foregroundColor(.white.opacity(0.8))
                 .disabled(isRestoring)
+                
+                // Add this new VStack right after the upgrade button and before the restore purchases button
+                HStack(spacing: 10) {
+                    Link("Privacy Policy", destination: URL(string: "https://mychill-d400c5.webflow.io/")!)
+                        .font(.footnote)
+                        .foregroundColor(.white)
+                    
+                    Link("Terms of Use", destination: URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!)
+                        .font(.footnote)
+                        .foregroundColor(.white)
+                }
             }
             .padding()
             
