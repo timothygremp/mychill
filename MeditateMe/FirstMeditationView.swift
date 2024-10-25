@@ -24,14 +24,19 @@ struct FirstMeditationView: View {
             ScrollView {
                 VStack(spacing: 15) {
                     Text("Hello, \(userName)👋")
-                        .font(.title2)
+                        .font(.system(size: 40, weight: .medium, design: .rounded))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                    
                     
                     Text("Let's Create Your First Meditation🥳")
-                        .font(.title2)
+                        .font(.system(size: 22, weight: .medium, design: .rounded))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
                     
                     VStack(alignment: .leading, spacing: 15) {
                         Text("To Get Started:")
@@ -39,9 +44,9 @@ struct FirstMeditationView: View {
                             .foregroundColor(.white)
                             .padding(.bottom, 5)
                         
-                        InstructionRow(icon: "1.circle.fill", text: "Type a message describing what you'd like your meditation/affirmation to be about. Examples like: I'm stressed about school or having family issues. You can make it about anything. You can also add as many selected themes as you want too. ")
-
-                        InstructionRow(icon: "2.circle.fill", text: "Hit the send button and wait for your meditation to be created!😍")
+                        InstructionRow(icon: "1.circle.fill", text: "Select a theme (scroll right for more)")
+                        InstructionRow(icon: "2.circle.fill", text: "Add a message with more detail about what's going on in your life. Examples like: I don't look the way I look or school is stressing me out. Add as much or little detail as you like.")
+                        InstructionRow(icon: "3.circle.fill", text: "Hit the send button and wait for your custom meditation to be created.❤️")
                     }
                     .padding()
                     .background(Color.white.opacity(0.1))
