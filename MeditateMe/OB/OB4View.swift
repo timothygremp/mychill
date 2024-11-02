@@ -35,7 +35,7 @@ struct OB4View: View {
                 VStack(spacing: 25) {
                     // Duolingo mascot image - replace with your own image asset
                     LottieView(name: "sloth_10s", loopMode: .loop)
-                        .frame(width: 120, height: 120)
+                        .frame(width: 200, height: 200)
                     
                     VStack(spacing: 15) {
                         Text("COURSE BUILDING...")
@@ -43,12 +43,12 @@ struct OB4View: View {
                             .foregroundColor(Color.gray)
                             .tracking(2) // Letter spacing
                         
-                        Text("Get ready to join the 7 million people")
+                        Text("Get ready to join the 1m plus people")
                             .font(.system(size: 24, weight: .medium))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
                         
-                        Text("currently learning French with\nDuolingo!")
+                        Text("currently on a meditation journey with\nChillMe!")
                             .font(.system(size: 24, weight: .medium))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)

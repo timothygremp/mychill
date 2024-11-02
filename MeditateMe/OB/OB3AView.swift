@@ -1,16 +1,16 @@
 //
-//  OB3View.swift
+//  OB3AView.swift
 //  MeditateMe
 //
-//  Created by Alaryce Patterson on 10/31/24.
+//  Created by Alaryce Patterson on 11/2/24.
 //
 
 import SwiftUI
 
-struct OB3View: View {
+struct OB3AView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Just 5 quick questions before we create your first meditation."
+    let fullText = "I'm here to guide you on your new meditation journey."
     @State private var isAnimating = false
     
     var body: some View {
@@ -112,5 +112,5 @@ struct OB3View: View {
 
 
 #Preview {
-    OB3View()
+    OB3AView()
 }

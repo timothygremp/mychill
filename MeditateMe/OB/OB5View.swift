@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OB5View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var selectedLevel: Int? = nil
     
     var body: some View {
         ZStack {
@@ -51,9 +52,9 @@ struct OB5View: View {
                 // Duolingo mascot and question
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
-                        .frame(width: 120, height: 120)
+                        .frame(width: 150, height: 150)
                     
-                    Text("How much French do\nyou know?")
+                    Text("How much meditating have you done?")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -66,11 +67,11 @@ struct OB5View: View {
                 
                 // Options list
                 VStack(spacing: 12) {
-                    makeOptionButton("I'm new to French", level: 1)
-                    makeOptionButton("I know some common words", level: 2)
-                    makeOptionButton("I can have basic conversations", level: 3)
-                    makeOptionButton("I can talk about various topics", level: 4)
-                    makeOptionButton("I can discuss most topics\nin detail", level: 5)
+                    makeOptionButton("I'm new to meditating", level: 1)
+                    makeOptionButton("I've done a little bit", level: 2)
+                    makeOptionButton("I was into it then stopped", level: 3)
+                    makeOptionButton("I meditate occassionally", level: 4)
+                    makeOptionButton("I meditate every day", level: 5)
                 }
                 .padding(.horizontal)
                 
@@ -78,16 +79,20 @@ struct OB5View: View {
                 
                 // Continue button
                 Button(action: {
-                    onboardingManager.nextStep()
+                    if let level = selectedLevel {
+                        onboardingManager.onboardingData.experience = level
+                        onboardingManager.nextStep()
+                    }
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 17, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(hex: "#8FE055"))
+                        .background(selectedLevel != nil ? Color(hex: "#8FE055") : Color.gray.opacity(0.3))
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
+                .disabled(selectedLevel == nil)
                 .padding(.horizontal)
                 .padding(.bottom, 34)
             }
@@ -96,7 +101,7 @@ struct OB5View: View {
     
     private func makeOptionButton(_ text: String, level: Int) -> some View {
         Button(action: {
-            // Button action will be added later
+            selectedLevel = level
         }) {
             HStack {
                 // Level indicator bars
@@ -104,7 +109,8 @@ struct OB5View: View {
                     ForEach(0..<5) { index in
                         Rectangle()
                             .fill(index < level ? Color(hex: "#4B95E7") : Color.gray.opacity(0.3))
-                            .frame(width: 5, height: 20)
+                            .cornerRadius(5)
+                            .frame(width: 5, height: 25)
                     }
                 }
                 .padding(.leading)
@@ -123,7 +129,10 @@ struct OB5View: View {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.2))
             )
-            
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.white, lineWidth: selectedLevel == level ? 2 : 0)
+            )
         }
     }
 }

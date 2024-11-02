@@ -195,7 +195,7 @@ extension Color {
 struct OB2View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Hello, I'm Mia <3"
+    let fullText = "Hello, I'm Mia ❤️"
     @State private var isAnimating = false
     
     var body: some View {
@@ -245,7 +245,7 @@ struct OB2View: View {
                    
                     // Green owl shape
                     LottieView(name: "sloth_10s", loopMode: .loop)
-                        .frame(width: 120, height: 120)
+                        .frame(width: 200, height: 200)
                 }
                 
                 Spacer()
