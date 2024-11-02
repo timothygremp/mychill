@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB1View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
 
     
     var body: some View {
@@ -19,18 +20,15 @@ struct OB1View: View {
             VStack {
                 Spacer()
                 
-                Image("r&J_welcome")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                LottieView(name: "sloth_10s", loopMode: .loop)
                     .frame(width: 250, height: 250)
-                    .foregroundColor(.red)
                 
-                Text("FlameGame")
+                Text("MyChill")
                     .font(.system(size: 50, weight: .bold))
                     .foregroundColor(.red)
                 
                 
-                Text("Love Language Maxxing❤️‍🔥")
+                Text("The focus is you")
                     .font(.system(size: 30))
                     .foregroundColor(.white)
                     
@@ -38,14 +36,14 @@ struct OB1View: View {
                 Spacer()
                 
                 Button(action: {
-                    
+                    onboardingManager.nextStep()
                 }) {
                     Text("GET STARTED")
                         .font(.headline)
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.red)
+                        .background(Color(hex: "#8FE055"))
                         .cornerRadius(10)
                 }
                 .padding(.horizontal)
@@ -58,7 +56,7 @@ struct OB1View: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(red: 0.2, green: 0.2, blue: 0.2))
+                        .background(Color(hex: "#8FE055"))
                         .cornerRadius(10)
                 }
                 .padding(.horizontal)

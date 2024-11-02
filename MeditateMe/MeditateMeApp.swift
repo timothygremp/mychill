@@ -11,6 +11,7 @@ import StoreKit
 
 @main
 struct MeditateMeApp: App {
+    @StateObject private var onboardingManager = OnboardingManager()
     
     init() {
 //        Superwall.configure(apiKey: "pk_c76acc0ba1a073bd1245aa0f57bd6117473050b8f13693f1")
@@ -32,7 +33,8 @@ struct MeditateMeApp: App {
     var body: some Scene {
         WindowGroup {
 //            ContentView()
-            OB25View()
+            OnboardingContainerView()
+            
         }
     }
 }

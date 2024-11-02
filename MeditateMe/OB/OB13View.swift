@@ -10,6 +10,7 @@ import SwiftUI
 import SwiftUI
 
 struct OB13View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
             // Dark background
@@ -18,9 +19,11 @@ struct OB13View: View {
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
+                
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -49,8 +52,8 @@ struct OB13View: View {
                 
                 // Lottie animation and message
                 HStack {
-                    LottieView(name: "flow_women", loopMode: .loop)
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     Text("You can also add my\nwidget for extra\nmotivation!")
                         .font(.system(size: 24, weight: .bold))
@@ -135,6 +138,7 @@ struct OB13View: View {
                     
                     Button(action: {
                         // Not now action
+                        onboardingManager.nextStep()
                     }) {
                         Text("NOT NOW")
                             .font(.system(size: 18, weight: .bold))

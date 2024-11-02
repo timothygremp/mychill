@@ -80,11 +80,11 @@ struct OB31View: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(email.isEmpty ? Color.gray.opacity(0.3) : Color(hex: "#4B95E7"))
+                                .fill(password.isEmpty ? Color.gray.opacity(0.3) : Color(hex: "#4B95E7"))
                         )
                         .padding(.horizontal)
                 }
-                .disabled(email.isEmpty)
+                .disabled(password.isEmpty)
                 
                 Spacer()
             }

@@ -77,7 +77,9 @@ struct TypingMessageView: View {
             VStack {
                 // Back button area
                 HStack {
-                    Button(action: {}) {
+                    Button(action: {
+                        
+                    }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
                             .imageScale(.large)
@@ -191,8 +193,9 @@ extension Color {
 
 
 struct OB2View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Hi there! I'm R! and I'm J!"
+    let fullText = "Hello, I'm Mia <3"
     @State private var isAnimating = false
     
     var body: some View {
@@ -205,7 +208,7 @@ struct OB2View: View {
                 // Back button area
                 HStack {
                     Button(action: {
-//                        onboardingManager.goBack()
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -239,30 +242,23 @@ struct OB2View: View {
                 // Duo mascot
                 ZStack {
                     // Shadow circle
-                    Circle()
-                        .fill(Color.black.opacity(0.2))
-                        .frame(width: 65, height: 65)
-                        .offset(y: 2)
-                    
+                   
                     // Green owl shape
-                    Image("r&J_welcome")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 260, height: 260)
-                        .foregroundColor(Color(hex: "58CC02"))
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                 }
                 
                 Spacer()
                 
                 // Continue button
                 Button(action: {
-//                    onboardingManager.moveToNextState()
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 17, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(.red))
+                        .background(Color(hex: "#8FE055"))
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }
