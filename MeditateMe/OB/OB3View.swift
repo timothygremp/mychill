@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct OB3View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "We all have love languages, but sometimes it can be hard for us to give each other what we need without a little nudge from time to time!"
+    let fullText = "I'm here to guide you on your new meditation journey! Just 5 quick questions before we make your first custom meditation."
     @State private var isAnimating = false
     
     var body: some View {
@@ -24,7 +25,7 @@ struct OB3View: View {
                 // Back button area
                 HStack {
                     Button(action: {
-//                        
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -61,30 +62,24 @@ struct OB3View: View {
                 // Duo mascot
                 ZStack {
                     // Shadow circle
-                    Circle()
-                        .fill(Color.black.opacity(0.2))
-                        .frame(width: 65, height: 65)
-                        .offset(y: 2)
+                   
                     
                     // Green owl shape
-                    Image("rj_single_flower")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 260, height: 260)
-                        .foregroundColor(Color(hex: "58CC02"))
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 200, height: 200)
                 }
                 
                 Spacer()
                 
                 // Continue button
                 Button(action: {
-                    
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 17, weight: .bold))
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(.red))
+                        .background(Color(hex: "#8FE055"))
                         .foregroundColor(.white)
                         .cornerRadius(16)
                 }

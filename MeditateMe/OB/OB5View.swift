@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct OB5View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
+    
     var body: some View {
         ZStack {
             // Dark background
@@ -19,6 +21,7 @@ struct OB5View: View {
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -47,10 +50,8 @@ struct OB5View: View {
                 
                 // Duolingo mascot and question
                 HStack {
-                    Image("duolingo_pencil") // Add your own image asset
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     Text("How much French do\nyou know?")
                         .font(.system(size: 24, weight: .bold))
@@ -74,6 +75,21 @@ struct OB5View: View {
                 .padding(.horizontal)
                 
                 Spacer()
+                
+                // Continue button
+                Button(action: {
+                    onboardingManager.nextStep()
+                }) {
+                    Text("CONTINUE")
+                        .font(.system(size: 17, weight: .bold))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color(hex: "#8FE055"))
+                        .foregroundColor(.white)
+                        .cornerRadius(16)
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 34)
             }
         }
     }
@@ -107,6 +123,7 @@ struct OB5View: View {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.2))
             )
+            
         }
     }
 }

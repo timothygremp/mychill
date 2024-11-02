@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OB19View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
     let fullText = "It can be hard to stay motivated..."
     @State private var isAnimating = false
@@ -17,7 +18,7 @@ struct OB19View: View {
                 // Back button area
                 HStack {
                     Button(action: {
-//
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)

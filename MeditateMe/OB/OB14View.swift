@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB14View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
             // Dark background
@@ -16,9 +17,11 @@ struct OB14View: View {
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
+                
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -66,6 +69,7 @@ struct OB14View: View {
                 // Continue button
                 Button(action: {
                     // Button action will be added later
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))

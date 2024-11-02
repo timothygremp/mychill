@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB15View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
 //            Color(red: 0.1, green: 0.1, blue: 0.1).edgesIgnoringSafeArea(.all)

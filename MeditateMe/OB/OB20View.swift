@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB20View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
     let fullText = "So MyChill is designed to be fun like a game!"
     @State private var isAnimating = false
@@ -24,7 +25,7 @@ struct OB20View: View {
                 // Back button area
                 HStack {
                     Button(action: {
-//
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)

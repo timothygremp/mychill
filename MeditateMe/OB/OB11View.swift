@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB11View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
             // Dark background
@@ -19,6 +20,7 @@ struct OB11View: View {
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -47,8 +49,8 @@ struct OB11View: View {
                 
                 // Lottie animation and message
                 HStack {
-                    LottieView(name: "flow_women", loopMode: .loop)
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     HStack {
                         Text("That's ")
@@ -72,6 +74,7 @@ struct OB11View: View {
                 // Continue button
                 Button(action: {
                     // Button action will be added later
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))

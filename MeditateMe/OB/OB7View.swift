@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB7View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
             // Dark background
@@ -19,6 +20,7 @@ struct OB7View: View {
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -67,13 +69,31 @@ struct OB7View: View {
                     makeOptionButton("Support my education", icon: "📚")
                     makeOptionButton("Prepare for travel", icon: "✈️")
                     makeOptionButton("Spend time productively", icon: "🧠")
-                    makeOptionButton("Just for fun", icon: "🎉")
-                    makeOptionButton("Connect with people", icon: "👥")
-                    makeOptionButton("Other", icon: "•••")
+//                    makeOptionButton("Just for fun", icon: "🎉")
+//                    makeOptionButton("Connect with people", icon: "👥")
+//                    makeOptionButton("Other", icon: "•••")
                 }
                 .padding(.horizontal)
                 
                 Spacer()
+                
+                // Continue button
+                Button(action: {
+                    // Button action will be added later
+                    onboardingManager.nextStep()
+                }) {
+                    Text("CONTINUE")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(Color(hex: "#1C232D"))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "#8FE055"))
+                        )
+                        .padding(.horizontal)
+                }
+                .padding(.bottom, 30)
             }
         }
     }

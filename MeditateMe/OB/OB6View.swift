@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OB6View: View {
+    @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
             // Dark background
@@ -19,6 +20,7 @@ struct OB6View: View {
                 HStack {
                     Button(action: {
                         // Navigation action will be added later
+                        onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.white)
@@ -47,10 +49,8 @@ struct OB6View: View {
                 
                 // Duolingo mascot and message
                 HStack {
-                    Image("duolingo_pencil") // Add your own image asset
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     Text("Wow, that's great!")
                         .font(.system(size: 24, weight: .bold))
@@ -68,10 +68,11 @@ struct OB6View: View {
                 // Continue button
                 Button(action: {
                     // Button action will be added later
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(hex: "#1C232D"))
+                        .foregroundColor(Color(hex: "#8FE055"))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
