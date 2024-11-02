@@ -9,6 +9,8 @@ import SwiftUI
 
 struct OB7View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var selectedOptions: Set<String> = []
+    
     var body: some View {
         ZStack {
             // Dark background
@@ -52,8 +54,8 @@ struct OB7View: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("Why are you\nlearning French?")
-                        .font(.system(size: 24, weight: .bold))
+                    Text("Why do you want to meditate? Select 1 or multiple☺️")
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
                         .background(
@@ -63,15 +65,16 @@ struct OB7View: View {
                 }
                 .padding()
                 
+//                ["Relaxation", "Focus", "Sleep", "Anxiety Relief", "Mindfulness"]
+                
                 // Options list
                 VStack(spacing: 12) {
-                    makeOptionButton("Boost my career", icon: "💼")
-                    makeOptionButton("Support my education", icon: "📚")
-                    makeOptionButton("Prepare for travel", icon: "✈️")
-                    makeOptionButton("Spend time productively", icon: "🧠")
-//                    makeOptionButton("Just for fun", icon: "🎉")
-//                    makeOptionButton("Connect with people", icon: "👥")
-//                    makeOptionButton("Other", icon: "•••")
+                    makeOptionButton("Reduce Anxiety", icon: "💼")
+                    makeOptionButton("Reduce Depression", icon: "💼")
+                    makeOptionButton("Boost Self Esteem", icon: "🎉")
+                    makeOptionButton("Improve Focus", icon: "📚")
+                    makeOptionButton("Improve Sleep", icon: "✈️")
+                    makeOptionButton("Relaxation", icon: "🧠")
                 }
                 .padding(.horizontal)
                 
@@ -79,7 +82,7 @@ struct OB7View: View {
                 
                 // Continue button
                 Button(action: {
-                    // Button action will be added later
+                    onboardingManager.onboardingData.meditationGoals = Array(selectedOptions)
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
@@ -89,18 +92,29 @@ struct OB7View: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "#8FE055"))
+                                .fill(selectedOptions.isEmpty ? Color.gray.opacity(0.3) : Color(hex: "#8FE055"))
                         )
                         .padding(.horizontal)
                 }
+                .disabled(selectedOptions.isEmpty)
                 .padding(.bottom, 30)
+            }
+        }
+        .onAppear {
+            // Restore previous selections if they exist
+            if !onboardingManager.onboardingData.meditationGoals.isEmpty {
+                selectedOptions = Set(onboardingManager.onboardingData.meditationGoals)
             }
         }
     }
     
     private func makeOptionButton(_ text: String, icon: String) -> some View {
         Button(action: {
-            // Button action will be added later
+            if selectedOptions.contains(text) {
+                selectedOptions.remove(text)
+            } else {
+                selectedOptions.insert(text)
+            }
         }) {
             HStack {
                 Text(icon)
@@ -118,6 +132,10 @@ struct OB7View: View {
             .background(
                 RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.2))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.white, lineWidth: selectedOptions.contains(text) ? 2 : 0)
             )
         }
     }

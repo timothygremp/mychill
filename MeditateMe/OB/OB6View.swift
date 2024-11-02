@@ -9,6 +9,21 @@ import SwiftUI
 
 struct OB6View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    
+    private var messageText: String {
+        let experience = onboardingManager.onboardingData.experience
+        switch experience {
+        case 1:
+            return "Okay, we'll start fresh!"
+        case 2...3:
+            return "Okay, we'll build on what you know!"
+        case 4...5:
+            return "Wow, that's great!"
+        default:
+            return "Okay, we'll start fresh!"
+        }
+    }
+    
     var body: some View {
         ZStack {
             // Dark background
@@ -19,7 +34,6 @@ struct OB6View: View {
                 // Top navigation bar with back button and progress
                 HStack {
                     Button(action: {
-                        // Navigation action will be added later
                         onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
@@ -37,8 +51,8 @@ struct OB6View: View {
                                 .cornerRadius(4)
                             
                             Rectangle()
-                                .foregroundColor(Color(hex: "#8FE055")) // Duolingo green
-                                .frame(width: geometry.size.width * 0.4, height: 8) // Increased progress to 40%
+                                .foregroundColor(Color(hex: "#8FE055"))
+                                .frame(width: geometry.size.width * 0.4, height: 8)
                                 .cornerRadius(4)
                         }
                     }
@@ -47,12 +61,12 @@ struct OB6View: View {
                 }
                 .padding(.top)
                 
-                // Duolingo mascot and message
+                // Duolingo mascot and dynamic message
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("Wow, that's great!")
+                    Text(messageText)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -67,12 +81,11 @@ struct OB6View: View {
                 
                 // Continue button
                 Button(action: {
-                    // Button action will be added later
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(hex: "#8FE055"))
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
@@ -90,5 +103,6 @@ struct OB6View: View {
 struct OB6View_Previews: PreviewProvider {
     static var previews: some View {
         OB6View()
+            .environmentObject(OnboardingManager())
     }
 }
