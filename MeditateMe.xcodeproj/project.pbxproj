@@ -17,9 +17,22 @@
 		E7A38BE52CC9B4B20083B7D5 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E76A40732CD7732F0080958B /* Exceptions for "MeditateMe" folder in "MeditateMe" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E719D1D12CC265860007F3B1 /* MeditateMe */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E719D1D42CC265860007F3B1 /* MeditateMe */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E76A40732CD7732F0080958B /* Exceptions for "MeditateMe" folder in "MeditateMe" target */,
+			);
 			path = MeditateMe;
 			sourceTree = "<group>";
 		};
@@ -280,6 +293,7 @@
 				DEVELOPMENT_TEAM = Y6P7L6V722;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MeditateMe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MyChill;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -315,6 +329,7 @@
 				DEVELOPMENT_TEAM = Y6P7L6V722;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MeditateMe/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = MyChill;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

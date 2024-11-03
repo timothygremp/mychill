@@ -52,7 +52,7 @@ struct OB8View: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("Let's set up a\nlearning routine!")
+                    Text("Let's set up a\nmeditation routine!")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()

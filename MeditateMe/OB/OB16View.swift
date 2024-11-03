@@ -15,7 +15,7 @@ struct OB16View: View {
             Color(hex: "#1C232D")
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 20) {
+            VStack(spacing: 10) {
                 // Top navigation bar with back button and progress
                 HStack {
                     Button(action: {
@@ -47,13 +47,14 @@ struct OB16View: View {
                 }
                 .padding(.top)
                 
+                
                 // Lottie animation and message
                 HStack {
-                    LottieView(name: "flow_women", loopMode: .loop)
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     Text("First, press and hold on\nyour home screen...")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
                         .background(
@@ -68,22 +69,19 @@ struct OB16View: View {
                 // Phone mockup
                 ZStack {
                     // Phone frame
-                    RoundedRectangle(cornerRadius: 40)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 280, height: 500)
                     
                     // Your image here
-                    Image("phone_mockup") // Replace with your actual image name
+                    Image("widget2") // Replace with your actual image name
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 260, height: 480) // Slightly smaller than frame
+                        .frame(width: 217, height: 400) // Slightly smaller than frame
                 }
                 
                 Spacer()
                 
                 // Continue button
                 Button(action: {
-                    // Button action will be added later
+                    onboardingManager.currentStep = 16
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))

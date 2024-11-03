@@ -79,7 +79,7 @@ struct OB20View: View {
                 
                 // Continue button
                 Button(action: {
-                    
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 17, weight: .bold))

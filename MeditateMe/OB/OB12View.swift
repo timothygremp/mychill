@@ -7,8 +7,12 @@
 
 import SwiftUI
 
+// THIS IS THE DUPLICATE OF HOW MANY WORDS IN A WEEK
+
 struct OB12View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var isNotificationRequested = false
     var body: some View {
         ZStack {
             // Dark background
@@ -98,7 +102,7 @@ struct OB12View: View {
                             .background(Color.white.opacity(0.2))
                         
                         Button("Allow") {
-                            // requestNotificationPermission()
+                            requestNotificationPermission()
                         }
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.cyan)
@@ -108,7 +112,7 @@ struct OB12View: View {
                     .frame(height: 44)
                 }
                 .frame(width: 270)
-                .background(Color(.systemGray6).opacity(0.2))
+                .background(Color(.systemGray6).opacity(0.6))
                 .cornerRadius(14)
                 
                 // Blue arrow
@@ -147,7 +151,40 @@ struct OB12View: View {
             }
         }
     }
+    
+    func requestNotificationPermission() {
+        let center = UNUserNotificationCenter.current()
+        print("Requesting notification permission...")
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            DispatchQueue.main.async {
+                isNotificationRequested = true
+                if granted {
+                    print("✅ Notification permission granted")
+                    checkNotificationStatus()
+                } else {
+                    print("❌ Notification permission denied")
+                    if let error = error {
+                        print("Error: \(error)")
+                    }
+                }
+            }
+        }
+    }
+    
+    func checkNotificationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            print("Notification settings:")
+            print("Authorization status: \(settings.authorizationStatus.rawValue)")
+            print("Alert setting: \(settings.alertSetting.rawValue)")
+            print("Sound setting: \(settings.soundSetting.rawValue)")
+            print("Badge setting: \(settings.badgeSetting.rawValue)")
+        }
+    }
+    
+    
 }
+
+
 
 struct OB12View_Previews: PreviewProvider {
     static var previews: some View {

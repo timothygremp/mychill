@@ -49,7 +49,7 @@ struct OB18View: View {
                 
                 // Lottie animation and message
                 HStack {
-                    LottieView(name: "flow_women", loopMode: .loop)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 80, height: 80)
                     
                     Text("Here's what you can\nachieve in 3 months!")
@@ -93,6 +93,7 @@ struct OB18View: View {
                 // Continue button
                 Button(action: {
                     // Button action will be added later
+                    onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))

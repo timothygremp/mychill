@@ -76,6 +76,7 @@ struct OB22View: View {
                 // Claim XP button
                 Button(action: {
                     // Button action will be added later
+//                    onboardingManager.nextStep()
                 }) {
                     Text("CLAIM XP")
                         .font(.system(size: 18, weight: .bold))

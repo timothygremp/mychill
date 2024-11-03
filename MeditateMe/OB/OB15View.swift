@@ -11,64 +11,83 @@ struct OB15View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
         ZStack {
-//            Color(red: 0.1, green: 0.1, blue: 0.1).edgesIgnoringSafeArea(.all)
-//            Color(.black).edgesIgnoringSafeArea(.all)
-            Color(hex: "1C1B1F").edgesIgnoringSafeArea(.all)
+            // Dark background
+            Color(hex: "#1C232D")
+                .edgesIgnoringSafeArea(.all)
             
-            VStack {
-                Spacer()
+            VStack(spacing: 20) {
+                // Top navigation bar with back button and progress
                 
-                Image("r&J_welcome")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 250, height: 250)
-                    .foregroundColor(.red)
-                
-                Text("FlameGame")
-                    .font(.system(size: 50, weight: .bold))
-                    .foregroundColor(.red)
-                
-                
-                Text("Love Language Maxxing❤️‍🔥")
-                    .font(.system(size: 30))
-                    .foregroundColor(.white)
+                HStack {
+                    Button(action: {
+                        // Navigation action will be added later
+                        onboardingManager.previousStep()
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.white)
+                            .font(.system(size: 24))
+                    }
+                    .padding(.leading)
                     
-                
-                Spacer()
-                
-                Button(action: {
-                    
-                }) {
-                    Text("GET STARTED")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .cornerRadius(10)
+                    // Progress bar
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .foregroundColor(Color.gray.opacity(0.3))
+                                .frame(height: 8)
+                                .cornerRadius(4)
+                            
+                            Rectangle()
+                                .foregroundColor(Color(hex: "#8FE055"))
+                                .frame(width: geometry.size.width * 1.0, height: 8) // Full progress
+                                .cornerRadius(4)
+                        }
+                    }
+                    .frame(height: 8)
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
+                .padding(.top)
                 
-                Button(action: {
-                    // Action for I ALREADY HAVE AN ACCOUNT
-                }) {
-                    Text("I ALREADY HAVE AN ACCOUNT")
-                        .font(.headline)
+                // Lottie animation and message
+                HStack {
+                    LottieView(name: "flow_women", loopMode: .loop)
+                        .frame(width: 80, height: 80)
+                    
+                    Text("Okay! You can add my\nwidget any time.")
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(red: 0.2, green: 0.2, blue: 0.2))
-                        .cornerRadius(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.gray.opacity(0.2))
+                        )
                 }
                 .padding(.horizontal)
-                .padding(.top, 10)
                 
-                Spacer().frame(height: 20)
+                Spacer()
+                
+                // Continue button
+                Button(action: {
+                    // Button action will be added later
+                    onboardingManager.nextStep()
+                }) {
+                    Text("CONTINUE")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(Color(hex: "#1C232D"))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(hex: "#8FE055"))
+                        )
+                        .padding(.horizontal)
+                }
+                .padding(.bottom, 30)
             }
         }
-        .statusBar(hidden: false)
     }
 }
+
 #Preview {
     OB15View()
 }
