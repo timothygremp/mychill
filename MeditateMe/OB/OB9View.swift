@@ -9,6 +9,8 @@ import SwiftUI
 
 struct OB9View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var selectedTime: String? = nil
+    
     var body: some View {
         ZStack {
             // Dark background
@@ -19,7 +21,6 @@ struct OB9View: View {
                 // Top navigation bar with back button and progress
                 HStack {
                     Button(action: {
-                        // Navigation action will be added later
                         onboardingManager.previousStep()
                     }) {
                         Image(systemName: "chevron.left")
@@ -37,8 +38,8 @@ struct OB9View: View {
                                 .cornerRadius(4)
                             
                             Rectangle()
-                                .foregroundColor(Color(hex: "#8FE055")) // Duolingo green
-                                .frame(width: geometry.size.width * 0.9, height: 8) // Increased progress to 90%
+                                .foregroundColor(Color(hex: "#8FE055"))
+                                .frame(width: geometry.size.width * 0.9, height: 8)
                                 .cornerRadius(4)
                         }
                     }
@@ -76,7 +77,6 @@ struct OB9View: View {
                 
                 // I'm Committed button
                 Button(action: {
-                    // Button action will be added later
                     onboardingManager.nextStep()
                 }) {
                     Text("I'M COMMITTED")
@@ -93,11 +93,21 @@ struct OB9View: View {
                 .padding(.bottom, 30)
             }
         }
+        .onAppear {
+            // Restore previous selection if it exists
+            if onboardingManager.onboardingData.dailyGoalMinutes > 0 {
+                selectedTime = "\(onboardingManager.onboardingData.dailyGoalMinutes) min / day"
+            }
+        }
     }
     
     private func makeOptionButton(time: String, level: String) -> some View {
         Button(action: {
-            // Button action will be added later
+            selectedTime = time
+            // Extract just the number from strings like "5 min / day"
+            if let minutes = time.split(separator: " ").first {
+                onboardingManager.onboardingData.dailyGoalMinutes = Int(minutes) ?? 0
+            }
         }) {
             HStack {
                 Text(time)
@@ -116,6 +126,10 @@ struct OB9View: View {
                 RoundedRectangle(cornerRadius: 15)
                     .fill(Color.gray.opacity(0.2))
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 15)
+                    .stroke(Color.white, lineWidth: selectedTime == time ? 2 : 0)
+            )
         }
     }
 }
@@ -123,5 +137,6 @@ struct OB9View: View {
 struct OB9View_Previews: PreviewProvider {
     static var previews: some View {
         OB9View()
+            .environmentObject(OnboardingManager())
     }
 }

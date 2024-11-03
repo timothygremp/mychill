@@ -31,6 +31,7 @@ struct OnboardingData {
     var email: String = ""
     var experience: Int = 0
     var meditationGoals: [String] = []
+    var dailyGoalMinutes: Int = 0
     // Add other fields as needed
 } 
 

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct OB4View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var timer: Timer?
+    
     var body: some View {
         ZStack {
             // Dark background
@@ -16,20 +18,6 @@ struct OB4View: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                // Back button area
-                HStack {
-                    Button(action: {
-                        onboardingManager.previousStep()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                            .imageScale(.large)
-                    }
-                    .padding(.leading)
-                    Spacer()
-                }
-                .padding(.top)
-                
                 Spacer()
                 
                 VStack(spacing: 25) {
@@ -38,12 +26,12 @@ struct OB4View: View {
                         .frame(width: 200, height: 200)
                     
                     VStack(spacing: 15) {
-                        Text("COURSE BUILDING...")
+                        Text("Starting your Journey...")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(Color.gray)
                             .tracking(2) // Letter spacing
                         
-                        Text("Get ready to join the 1m plus people")
+                        Text("Get ready to join the 1m+ people")
                             .font(.system(size: 24, weight: .medium))
                             .foregroundColor(.white)
                             .multilineTextAlignment(.center)
@@ -56,28 +44,19 @@ struct OB4View: View {
                     .padding(.horizontal, 40)
                     
                     Spacer()
-                    
-                    // Continue button
-                    Button(action: {
-                        onboardingManager.nextStep()
-                    }) {
-                        Text("CONTINUE")
-                            .font(.system(size: 17, weight: .bold))
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(hex: "#8FE055"))
-                            .foregroundColor(.white)
-                            .cornerRadius(16)
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom, 34)
-                    
-                   
-                    
-                    // Progress bar
-                    
                 }
             }
+        }
+        .onAppear {
+            // Start timer when view appears
+            timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: false) { _ in
+                onboardingManager.nextStep()
+            }
+        }
+        .onDisappear {
+            // Cancel timer if view disappears
+            timer?.invalidate()
+            timer = nil
         }
     }
 }

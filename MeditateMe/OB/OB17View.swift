@@ -15,7 +15,7 @@ struct OB17View: View {
             Color(hex: "#1C232D")
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 20) {
+            VStack(spacing: 10) {
                 // Top navigation bar with back button and progress
                 HStack {
                     Button(action: {
@@ -49,11 +49,11 @@ struct OB17View: View {
                 
                 // Lottie animation and message
                 HStack {
-                    LottieView(name: "flow_women", loopMode: .loop)
-                        .frame(width: 80, height: 80)
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 120, height: 120)
                     
                     Text("Then, tap the + button\nand add my widget!")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
                         .background(
@@ -68,38 +68,20 @@ struct OB17View: View {
                 // Phone mockup with + button
                 ZStack {
                     // Phone frame
-                    RoundedRectangle(cornerRadius: 40)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 280, height: 500)
                     
                     // Your image here
-                    Image("phone_mockup") // Replace with your actual image name
+                    Image("widget3") // Replace with your actual image name
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 260, height: 480)
+                        .frame(width: 217, height: 400)
                     
-                    // Blue + button overlay
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Text("+")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 30, height: 30)
-                                .background(Color(hex: "#4B95E7")) // Blue color
-                                .cornerRadius(15)
-                                .padding(.trailing, 150)
-                                .padding(.top, -200)
-                        }
-                        Spacer()
-                    }
                 }
                 
                 Spacer()
                 
                 // Continue button
                 Button(action: {
-                    // Button action will be added later
+                    onboardingManager.currentStep = 17
                 }) {
                     Text("CONTINUE")
                         .font(.system(size: 18, weight: .bold))

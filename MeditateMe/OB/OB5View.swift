@@ -52,7 +52,7 @@ struct OB5View: View {
                 // Duolingo mascot and question
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
-                        .frame(width: 150, height: 150)
+                        .frame(width: 120, height: 120)
                     
                     Text("How much meditating have you done?")
                         .font(.system(size: 24, weight: .bold))

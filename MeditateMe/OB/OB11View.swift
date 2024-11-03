@@ -55,7 +55,7 @@ struct OB11View: View {
                     HStack {
                         Text("That's ")
                             .foregroundColor(.white) +
-                        Text("25 words")
+                        Text("\(onboardingManager.onboardingData.dailyGoalMinutes * 7) minutes")
                             .foregroundColor(Color(hex: "#A558C8")) + // Purple color
                         Text(" in your\nfirst week!")
                             .foregroundColor(.white)

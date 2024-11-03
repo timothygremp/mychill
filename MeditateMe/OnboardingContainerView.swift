@@ -27,27 +27,25 @@ struct OnboardingContainerView: View {
             case 10:
                 OB9View()
             case 11:
-                OB10View()
-            case 12:
                 OB11View()
-            case 13:
+            case 12:
                 OB12View()
-            case 14:
+            case 13:
                 OB13View()
-            case 15:
+            case 14:
                 OB14View()
-            case 16:
-                OB15View()
-            case 17:
+            case 15:
                 OB16View()
-            case 18:
+            case 16:
                 OB17View()
-            case 19:
+            case 17:
                 OB18View()
-            case 20:
+            case 18:
                 OB19View()
-            case 21:
+            case 19:
                 OB20View()
+            case 20:
+                OB21View()
             default:
                 Text("Invalid step")
             }

@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct OB13View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     var body: some View {
@@ -68,62 +66,19 @@ struct OB13View: View {
                 
                 Spacer()
                 
-                // Phone mockup with widget
-                ZStack {
-                    // Phone frame
-                    RoundedRectangle(cornerRadius: 40)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(width: 200, height: 300)
-                    
-                    // Notch
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(width: 60, height: 12)
-                        .offset(y: -135)
-                    
-                    // Widget
-                    VStack {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color(hex: "#A558C8")) // Purple background
-                                .frame(width: 60, height: 60)
-                            
-                            VStack(spacing: 0) {
-                                HStack(spacing: 2) {
-                                    Image(systemName: "flame.fill")
-                                        .foregroundColor(.orange)
-                                        .font(.system(size: 12))
-                                    Text("3")
-                                        .foregroundColor(.orange)
-                                        .font(.system(size: 14, weight: .bold))
-                                }
-                                
-                                Image("duolingo_sleeping") // Add your own image asset
-                                    .resizable()
-                                    .frame(width: 40, height: 40)
-                            }
-                        }
-                    }
-                    .offset(x: -50, y: -80) // Position widget in top-left area
-                    
-                    // Other app icons (grayed out)
-                    ForEach(0..<5) { index in
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 40, height: 40)
-                            .offset(
-                                x: CGFloat(((index % 3) - 1) * 50),
-                                y: CGFloat((index / 3) * 50) - 80
-                            )
-                    }
-                }
+                // Widget image
+                Image("widget1")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300)
                 
                 Spacer()
                 
                 // Buttons
                 VStack(spacing: 12) {
                     Button(action: {
-                        // Add widget action
+                        // Skip to OB16 for widget flow
+                        onboardingManager.currentStep = 15
                     }) {
                         Text("ADD WIDGET")
                             .font(.system(size: 18, weight: .bold))
@@ -137,8 +92,8 @@ struct OB13View: View {
                     }
                     
                     Button(action: {
-                        // Not now action
-                        onboardingManager.nextStep()
+                        // Go to OB14 for non-widget flow
+                        onboardingManager.currentStep = 14
                     }) {
                         Text("NOT NOW")
                             .font(.system(size: 18, weight: .bold))
