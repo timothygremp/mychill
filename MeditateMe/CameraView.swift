@@ -13,8 +13,8 @@ struct CameraView: View {
                 .ignoresSafeArea()
             
             // Camera controls overlay
-            VStack {
-                // Top controls
+            VStack(spacing: 20) {
+                // Top navigation bar with back button and flash
                 HStack {
                     // Dismiss button
                     Button(action: {
@@ -45,9 +45,12 @@ struct CameraView: View {
                         .frame(width: 120, height: 120)
                     
                     Text("ChillMe")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(.system(size: 40, weight: .bold))
+                        .foregroundColor(.red)
+                        .padding(.top, -30)
+                    
                 }
+                .padding(.top, -80) // Move sloth higher by reducing top padding
                 
                 Spacer()
                 
@@ -108,7 +111,7 @@ struct CameraView: View {
             ImagePicker(selectedImage: $camera.capturedImage)
         }
         .onDisappear {
-            camera.stopSession()  // Stop session when view disappears
+            camera.stopSession()
         }
     }
 }
