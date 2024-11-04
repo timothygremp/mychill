@@ -62,17 +62,9 @@ struct OB20View: View {
                 // Duo mascot
                 ZStack {
                     // Shadow circle
-                    Circle()
-                        .fill(Color.black.opacity(0.2))
-                        .frame(width: 65, height: 65)
-                        .offset(y: 2)
                     
-                    // Green owl shape
-                    Image("rj_single_flower")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 260, height: 260)
-                        .foregroundColor(Color(hex: "58CC02"))
+                    LottieView(name: "sloth_10s", loopMode: .loop)
+                        .frame(width: 200, height: 200)
                 }
                 
                 Spacer()

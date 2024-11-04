@@ -33,7 +33,8 @@ struct MeditateMeApp: App {
     var body: some Scene {
         WindowGroup {
 //            ContentView()
-            OnboardingContainerView()
+//            OnboardingContainerView()
+            CameraView()
             
         }
     }

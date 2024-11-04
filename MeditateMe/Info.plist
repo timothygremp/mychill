@@ -4,5 +4,9 @@
 <dict>
 	<key>NSUserNotificationUsageDescription</key>
 	<string>Notifications may include alerts, sounds, and icon badges. These can be configured in Settings.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to take emotion diagnosis photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to your photo library to select profile photos.</string>
 </dict>
 </plist>
