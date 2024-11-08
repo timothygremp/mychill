@@ -10,7 +10,7 @@ import SwiftUI
 struct OB3AView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Now it's time for a selfie with AI emotional analysis to finish creating your Inner Peace score."
+    let fullText = "Now it's time for a selfie with A.I. Emotion analysis to finish creating your 🧘‍♀️InnerPeace🧘‍♂️ score."
     @State private var isAnimating = false
     @State private var animationAmount: CGFloat = 1.0
     
