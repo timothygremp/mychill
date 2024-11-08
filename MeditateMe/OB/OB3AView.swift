@@ -10,7 +10,7 @@ import SwiftUI
 struct OB3AView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "I'm here to guide you on your new meditation journey."
+    let fullText = "Now we will take a selfie with AI emotional analysis to determine your current and potential Inner Peace Score."
     @State private var isAnimating = false
     
     var body: some View {

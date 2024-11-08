@@ -11,21 +11,21 @@ struct OnboardingContainerView: View {
             case 2:
                 OB2View()
             case 3:
-                OB3AView()
-            case 4:
                 OB3View()
-            case 5:
-                OB4View()
-            case 6:
+            case 4:
                 OB5View(onboardingManager: onboardingManager)
-            case 7:
+            case 5:
                 OB5AView(onboardingManager: onboardingManager)
-            case 8:
+            case 6:
                 OB5BView(onboardingManager: onboardingManager)
-            case 9:
+            case 7:
                 OB5CView(onboardingManager: onboardingManager)
-            case 10:
+            case 8:
                 OB5DView(onboardingManager: onboardingManager)
+            case 9:
+                OB3AView()
+            case 10:
+                CameraView()
             case 11:
                 OB11View()
             case 12:
