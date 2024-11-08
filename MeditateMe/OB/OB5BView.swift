@@ -9,7 +9,11 @@ import SwiftUI
 
 struct OB5BView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var traumaLevel: Double = 50 // Default to middle
+    @State private var traumaLevel: Double
+    
+    init(onboardingManager: OnboardingManager) {
+        _traumaLevel = State(initialValue: Double(onboardingManager.onboardingData.trauma))
+    }
     
     var body: some View {
         ZStack {
@@ -54,7 +58,7 @@ struct OB5BView: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("What is your trauma level?")
+                    Text("How much trauma have you experienced?")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -179,5 +183,6 @@ struct OB5BView: View {
 
 
 #Preview {
-    OB5BView()
+    OB5BView(onboardingManager: OnboardingManager())
+        .environmentObject(OnboardingManager())
 }

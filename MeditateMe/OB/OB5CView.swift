@@ -9,7 +9,11 @@ import SwiftUI
 
 struct OB5CView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var relationshipLevel: Double = 50 // Default to middle
+    @State private var relationshipLevel: Double
+    
+    init(onboardingManager: OnboardingManager) {
+        _relationshipLevel = State(initialValue: Double(onboardingManager.onboardingData.relationship))
+    }
     
     var body: some View {
         ZStack {
@@ -179,5 +183,6 @@ struct OB5CView: View {
 
 
 #Preview {
-    OB5CView()
+    OB5CView(onboardingManager: OnboardingManager())
+        .environmentObject(OnboardingManager())
 }

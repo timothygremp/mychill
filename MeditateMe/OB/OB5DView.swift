@@ -9,7 +9,11 @@ import SwiftUI
 
 struct OB5DView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var esteemLevel: Double = 50 // Default to middle
+    @State private var esteemLevel: Double
+    
+    init(onboardingManager: OnboardingManager) {
+        _esteemLevel = State(initialValue: Double(onboardingManager.onboardingData.esteem))
+    }
     
     var body: some View {
         ZStack {
@@ -179,5 +183,6 @@ struct OB5DView: View {
 
 
 #Preview {
-    OB5DView()
+    OB5DView(onboardingManager: OnboardingManager())
+        .environmentObject(OnboardingManager())
 }

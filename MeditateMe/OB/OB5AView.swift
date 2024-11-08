@@ -9,7 +9,11 @@ import SwiftUI
 
 struct OB5AView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var depressionLevel: Double = 50 // Default to middle
+    @State private var depressionLevel: Double
+    
+    init(onboardingManager: OnboardingManager) {
+        _depressionLevel = State(initialValue: Double(onboardingManager.onboardingData.depression))
+    }
     
     var body: some View {
         ZStack {
@@ -179,5 +183,6 @@ struct OB5AView: View {
 
 
 #Preview {
-    OB5AView()
+    OB5AView(onboardingManager: OnboardingManager())
+        .environmentObject(OnboardingManager())
 }
