@@ -29,6 +29,12 @@ struct OnboardingData {
     var name: String = ""
     var age: Int = 0
     var email: String = ""
+    var anxiety: Int = 0
+    var depression: Int = 0
+    var sleep: Int = 0
+    var trauma: Int = 0
+    var relationship: Int = 0
+    var esteem: Int = 0
     var experience: Int = 0
     var meditationGoals: [String] = []
     var dailyGoalMinutes: Int = 0

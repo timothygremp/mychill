@@ -1,15 +1,15 @@
 //
-//  OB5View.swift
+//  OB5BView.swift
 //  MeditateMe
 //
-//  Created by Alaryce Patterson on 10/31/24.
+//  Created by Alaryce Patterson on 11/7/24.
 //
 
 import SwiftUI
 
-struct OB5View: View {
+struct OB5BView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var anxietyLevel: Double = 50 // Default to middle
+    @State private var traumaLevel: Double = 50 // Default to middle
     
     var body: some View {
         ZStack {
@@ -54,7 +54,7 @@ struct OB5View: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("How would you rate your anxiety?")
+                    Text("What is your trauma level?")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -76,14 +76,14 @@ struct OB5View: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("Rarely feel anxious")
+                            Text("No trauma")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                                 .padding(.bottom, 4)
                         }
-                        .frame(width: 140)
+                        .frame(width: 160)
                         .padding(.leading, 8)
                         
                         Spacer()
@@ -95,14 +95,14 @@ struct OB5View: View {
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("Frequently anxious")
+                            Text("High trauma")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                                 .padding(.bottom, 4)
                         }
-                        .frame(width: 140)
+                        .frame(width: 160)
                         .padding(.trailing, 8)
                     }
                     .padding(.horizontal, 8)
@@ -126,7 +126,7 @@ struct OB5View: View {
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ))
-                            .frame(width: max(0, min(CGFloat(anxietyLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)))
+                            .frame(width: max(0, min(CGFloat(traumaLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)))
                             .frame(height: 12)
                             .cornerRadius(6)
                         
@@ -135,14 +135,14 @@ struct OB5View: View {
                             .fill(Color.white)
                             .frame(width: 28, height: 28)
                             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                            .offset(x: max(0, min(CGFloat(anxietyLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)) - 14)
+                            .offset(x: max(0, min(CGFloat(traumaLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)) - 14)
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
                                         let width = UIScreen.main.bounds.width - 48 // Accounting for horizontal padding
                                         let xLocation = value.location.x
                                         let percentage = min(max(0, xLocation / width * 100), 100)
-                                        anxietyLevel = Double(percentage)
+                                        traumaLevel = Double(percentage)
                                     }
                             )
                     }
@@ -159,7 +159,7 @@ struct OB5View: View {
                 
                 // Continue button
                 Button(action: {
-                    onboardingManager.onboardingData.anxiety = Int(anxietyLevel)
+                    onboardingManager.onboardingData.trauma = Int(traumaLevel)
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
@@ -177,8 +177,7 @@ struct OB5View: View {
     }
 }
 
-struct OB5View_Previews: PreviewProvider {
-    static var previews: some View {
-        OB5View()
-    }
+
+#Preview {
+    OB5BView()
 }

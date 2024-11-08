@@ -1,15 +1,15 @@
 //
-//  OB5View.swift
+//  OB5DView.swift
 //  MeditateMe
 //
-//  Created by Alaryce Patterson on 10/31/24.
+//  Created by Alaryce Patterson on 11/8/24.
 //
 
 import SwiftUI
 
-struct OB5View: View {
+struct OB5DView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
-    @State private var anxietyLevel: Double = 50 // Default to middle
+    @State private var esteemLevel: Double = 50 // Default to middle
     
     var body: some View {
         ZStack {
@@ -54,7 +54,7 @@ struct OB5View: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("How would you rate your anxiety?")
+                    Text("How would you rate your relationship with yourself?")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -70,39 +70,39 @@ struct OB5View: View {
                     // Labels with enhanced styling and better spacing
                     HStack {
                         VStack(spacing: 8) {
-                            Text("None")
+                            Text("Hate")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("Rarely feel anxious")
+                            Text("I hate myself and body")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                                 .padding(.bottom, 4)
                         }
-                        .frame(width: 140)
+                        .frame(width: 160)
                         .padding(.leading, 8)
                         
                         Spacer()
                         
                         VStack(spacing: 8) {
-                            Text("A Lot")
+                            Text("Love")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("Frequently anxious")
+                            Text("I love myself and body")
                                 .foregroundColor(.gray)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                                 .padding(.bottom, 4)
                         }
-                        .frame(width: 140)
+                        .frame(width: 160)
                         .padding(.trailing, 8)
                     }
                     .padding(.horizontal, 8)
@@ -126,7 +126,7 @@ struct OB5View: View {
                                 startPoint: .leading,
                                 endPoint: .trailing
                             ))
-                            .frame(width: max(0, min(CGFloat(anxietyLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)))
+                            .frame(width: max(0, min(CGFloat(esteemLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)))
                             .frame(height: 12)
                             .cornerRadius(6)
                         
@@ -135,14 +135,14 @@ struct OB5View: View {
                             .fill(Color.white)
                             .frame(width: 28, height: 28)
                             .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                            .offset(x: max(0, min(CGFloat(anxietyLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)) - 14)
+                            .offset(x: max(0, min(CGFloat(esteemLevel) / 100 * (UIScreen.main.bounds.width - 48), UIScreen.main.bounds.width - 48)) - 14)
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
                                         let width = UIScreen.main.bounds.width - 48 // Accounting for horizontal padding
                                         let xLocation = value.location.x
                                         let percentage = min(max(0, xLocation / width * 100), 100)
-                                        anxietyLevel = Double(percentage)
+                                        esteemLevel = Double(percentage)
                                     }
                             )
                     }
@@ -159,7 +159,7 @@ struct OB5View: View {
                 
                 // Continue button
                 Button(action: {
-                    onboardingManager.onboardingData.anxiety = Int(anxietyLevel)
+                    onboardingManager.onboardingData.esteem = Int(esteemLevel)
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
@@ -177,8 +177,7 @@ struct OB5View: View {
     }
 }
 
-struct OB5View_Previews: PreviewProvider {
-    static var previews: some View {
-        OB5View()
-    }
+
+#Preview {
+    OB5DView()
 }

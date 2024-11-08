@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SuperwallKit
+//import SuperwallKit
 import StoreKit
 
 @main
@@ -33,8 +33,8 @@ struct MeditateMeApp: App {
     var body: some Scene {
         WindowGroup {
 //            ContentView()
-//            OnboardingContainerView()
-            CameraView()
+            OnboardingContainerView()
+//            CameraView()
             
         }
     }
