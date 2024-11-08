@@ -9,13 +9,12 @@ import SwiftUI
 
 struct OB1View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var animationAmount: CGFloat = 1.0
 
-    
     var body: some View {
         ZStack {
-//            Color(red: 0.1, green: 0.1, blue: 0.1).edgesIgnoringSafeArea(.all)
-//            Color(.black).edgesIgnoringSafeArea(.all)
-            Color(hex: "1C1B1F").edgesIgnoringSafeArea(.all)
+            // Gradient background
+            GradientBackgroundView()
             
             VStack {
                 Spacer()
@@ -38,32 +37,33 @@ struct OB1View: View {
                 Button(action: {
                     onboardingManager.nextStep()
                 }) {
-                    Text("GET STARTED")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#8FE055"))
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
-                
-                Button(action: {
-                    // Action for I ALREADY HAVE AN ACCOUNT
-                }) {
-                    Text("I ALREADY HAVE AN ACCOUNT")
+                    Text("CONTINUE")
                         .font(.headline)
                         .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color(hex: "#8FE055"))
-                        .cornerRadius(10)
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal)
-                .padding(.top, 10)
-                
-                Spacer().frame(height: 20)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
+                .padding(.bottom, 34)
             }
+        }
+        .onAppear {
+            animationAmount = 1.05
         }
         .statusBar(hidden: false)
     }

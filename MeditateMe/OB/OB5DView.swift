@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OB5DView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var animationAmount: CGFloat = 1.0
     @State private var esteemLevel: Double
     
     init(onboardingManager: OnboardingManager) {
@@ -17,9 +18,7 @@ struct OB5DView: View {
     
     var body: some View {
         ZStack {
-            // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+            GradientBackgroundView()
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -74,14 +73,14 @@ struct OB5DView: View {
                     // Labels with enhanced styling and better spacing
                     HStack {
                         VStack(spacing: 8) {
-                            Text("Hate")
+                            Text("Love")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("I hate myself and body")
-                                .foregroundColor(.gray)
+                            Text("I love myself and body")
+                                .foregroundColor(.white)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
@@ -93,14 +92,14 @@ struct OB5DView: View {
                         Spacer()
                         
                         VStack(spacing: 8) {
-                            Text("Love")
+                            Text("Hate")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
-                            
-                            Text("I love myself and body")
-                                .foregroundColor(.gray)
+                           
+                            Text("I hate myself and body")
+                                .foregroundColor(.white)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
@@ -167,16 +166,32 @@ struct OB5DView: View {
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
-                        .font(.system(size: 17, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#8FE055"))
+                        .font(.headline)
                         .foregroundColor(.white)
-                        .cornerRadius(16)
+                        .padding()
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 34)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
             }
+        }
+        .onAppear {
+            animationAmount = 1.05
         }
     }
 }

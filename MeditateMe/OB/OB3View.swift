@@ -10,14 +10,17 @@ import SwiftUI
 struct OB3View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Just 5 quick questions before we know your Inner Peace Score & create your first meditation."
+    let fullText = "Just 5 quick questions before we find out your Inner Peace score!"
     @State private var isAnimating = false
+    @State private var animationAmount: CGFloat = 1.0
     
     var body: some View {
         ZStack {
 //             Dark background
-            Color(hex: "1C1B1F")
-                .ignoresSafeArea()
+            // Color(hex: "1C1B1F")
+            //     .ignoresSafeArea()
+
+                GradientBackgroundView()
 //            Color(.black)
 //                .ignoresSafeArea()
             
@@ -76,15 +79,28 @@ struct OB3View: View {
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
-                        .font(.system(size: 17, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#8FE055"))
+                        .font(.headline)
                         .foregroundColor(.white)
-                        .cornerRadius(16)
+                        .padding()
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 34)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
             }
         }
         .onAppear {

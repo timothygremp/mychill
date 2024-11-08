@@ -14,8 +14,9 @@ struct OB4View: View {
     var body: some View {
         ZStack {
             // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+            // Color(hex: "#1C232D")
+            //     .edgesIgnoringSafeArea(.all)
+            GradientBackgroundView()
             
             VStack {
                 Spacer()

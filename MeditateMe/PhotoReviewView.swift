@@ -3,10 +3,9 @@ import Photos
 
 struct PhotoReviewView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
+    @State private var animationAmount: CGFloat = 1.0
     
-
-    
-    // Calculate current score (average of all 5 scores)
+    // Calculate current score (average of all 5 scores, inverted, and randomly adjusted)
     private var currentScore: Int {
         let scores = [
             onboardingManager.onboardingData.anxiety,
@@ -15,7 +14,14 @@ struct PhotoReviewView: View {
             onboardingManager.onboardingData.relationship,
             onboardingManager.onboardingData.esteem
         ]
-        return scores.reduce(0, +) / scores.count
+        let average = scores.reduce(0, +) / scores.count
+        let inverted = 100 - average
+        
+        // Random adjustment between -4 and +4
+        let randomAdjustment = Int.random(in: -4...4)
+        
+        // Ensure the final score stays within 0-100 range
+        return max(0, min(100, inverted + randomAdjustment))
     }
     
     // Calculate potential score with more granular improvement factors
@@ -26,15 +32,15 @@ struct PhotoReviewView: View {
         let improvementFactor: Double
         switch current {
         case 0...20:   // Very low scores
-            improvementFactor = Double.random(in: 1.91...2.05)
+            improvementFactor = Double.random(in: 2.87...3.13)
         case 21...40:  // Low scores
-            improvementFactor = Double.random(in: 1.63...1.80)
+            improvementFactor = Double.random(in: 2.34...2.67)
         case 41...60:  // Medium scores
-            improvementFactor = Double.random(in: 1.24...1.42)
+            improvementFactor = Double.random(in: 1.43...1.76)
         case 61...80:  // Higher scores
-            improvementFactor = Double.random(in: 1.10...1.37)
+            improvementFactor = Double.random(in: 1.22...1.38)
         default:       // Very high scores
-            improvementFactor = Double.random(in: 1.13...1.24)
+            improvementFactor = Double.random(in: 1.08...1.14)
         }
         
         // Calculate potential score with a ceiling of 100
@@ -48,9 +54,8 @@ struct PhotoReviewView: View {
     
     var body: some View {
         ZStack {
-            // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+            // Gradient background
+            GradientBackgroundView()
             
             VStack(spacing: 0) {
                 // Top navigation bar with back button
@@ -125,21 +130,37 @@ struct PhotoReviewView: View {
                 
                 Spacer()
                 
-                // Continue button
+                // Updated animated button
                 Button(action: {
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
-                        .font(.system(size: 17, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#8FE055"))
+                        .font(.headline)
                         .foregroundColor(.white)
-                        .cornerRadius(16)
+                        .padding()
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
                 .padding(.bottom, 34)
             }
+        }
+        .onAppear {
+            animationAmount = 1.05  // Start the button animation
         }
     }
 }

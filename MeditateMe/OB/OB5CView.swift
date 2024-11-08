@@ -10,6 +10,7 @@ import SwiftUI
 struct OB5CView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var relationshipLevel: Double
+    @State private var animationAmount: CGFloat = 1.0
     
     init(onboardingManager: OnboardingManager) {
         _relationshipLevel = State(initialValue: Double(onboardingManager.onboardingData.relationship))
@@ -18,8 +19,9 @@ struct OB5CView: View {
     var body: some View {
         ZStack {
             // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+            // Color(hex: "#1C232D")
+            //     .edgesIgnoringSafeArea(.all)
+            GradientBackgroundView()
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -74,14 +76,14 @@ struct OB5CView: View {
                     // Labels with enhanced styling and better spacing
                     HStack {
                         VStack(spacing: 8) {
-                            Text("Bad")
+                            Text("Great")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
-                            
-                            Text("Each one is unhealthy")
-                                .foregroundColor(.gray)
+                           
+                            Text("Each one is healthy")
+                                .foregroundColor(.white)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
@@ -93,14 +95,14 @@ struct OB5CView: View {
                         Spacer()
                         
                         VStack(spacing: 8) {
-                            Text("Great")
+                            Text("Toxic")
                                 .foregroundColor(.white)
                                 .font(.system(size: 24, weight: .medium))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
                             
-                            Text("Each one is healthy")
-                                .foregroundColor(.gray)
+                            Text("Each one is toxic")
+                                .foregroundColor(.white)
                                 .font(.system(size: 14))
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .padding(.horizontal, 4)
@@ -167,15 +169,28 @@ struct OB5CView: View {
                     onboardingManager.nextStep()
                 }) {
                     Text("CONTINUE")
-                        .font(.system(size: 17, weight: .bold))
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color(hex: "#8FE055"))
+                        .font(.headline)
                         .foregroundColor(.white)
-                        .cornerRadius(16)
+                        .padding()
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding(.horizontal)
                 .padding(.bottom, 34)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
             }
         }
     }
