@@ -5,6 +5,11 @@ import Photos
 struct CameraView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = CameraModel()
+    @EnvironmentObject private var onboardingManager: OnboardingManager
+    
+    init(onboardingManager: OnboardingManager) {
+        // No need to set anything here since we're using @EnvironmentObject
+    }
     
     var body: some View {
         ZStack {
@@ -14,30 +19,21 @@ struct CameraView: View {
             
             // Camera controls overlay
             VStack(spacing: 20) {
-                // Top navigation bar with back button and flash
-                HStack {
-                    // Dismiss button
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    // Flash toggle
-                    Button(action: {
-                        camera.toggleFlash()
-                    }) {
-                        Image(systemName: camera.isFlashOn ? "bolt.fill" : "bolt.slash.fill")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding()
-                    }
-                }
+                // Top navigation bar with back button
+//                HStack {
+//                    // Back button
+//                    Button(action: {
+//                        camera.stopSession() // Stop the camera session before navigating back
+//                        onboardingManager.previousStep()
+//                    }) {
+//                        Image(systemName: "chevron.left")
+//                            .foregroundColor(.white)
+//                            .font(.system(size: 24))
+//                    }
+//                    .padding(.leading)
+//                    
+//                    Spacer()
+//                }
                 
                 // Lottie animation and app name
                 VStack(spacing: 8) {
@@ -50,65 +46,43 @@ struct CameraView: View {
                         .padding(.top, -30)
                     
                 }
-                .padding(.top, -80) // Move sloth higher by reducing top padding
+                /*.padding(.top, -50)*/ // Move sloth higher by reducing top padding
                 
                 Spacer()
                 
-                // Bottom controls
-                HStack(spacing: 60) {
-                    // Photo library button
-                    Button(action: {
-                        camera.openPhotoLibrary()
-                    }) {
-                        Image(systemName: "photo.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
-                    }
-                    
-                    // Camera shutter button
-                    Button(action: {
-                        camera.capturePhoto()
-                    }) {
-                        ZStack {
-                            // Rainbow gradient inner circle
-                            Circle()
-                                .fill(
-                                    AngularGradient(
-                                        gradient: Gradient(colors: [
-                                            .red, .orange, .yellow, .green, .blue, .purple, .red
-                                        ]),
-                                        center: .center
-                                    )
-                                )
-                                .frame(width: 74, height: 74)
-                            
-                            // White outer circle
-                            Circle()
-                                .strokeBorder(Color.white, lineWidth: 3)
-                                .frame(width: 80, height: 80)
+                // Bottom controls - camera shutter button
+                Button(action: {
+                    camera.capturePhoto { image in
+                        if let image = image {
+                            onboardingManager.capturedImage = image // Store the image
+                            onboardingManager.nextStep() // Move to review step
                         }
                     }
-                    
-                    // Camera flip button
-                    Button(action: {
-                        camera.flipCamera()
-                    }) {
-                        Image(systemName: "camera.rotate.fill")
-                            .font(.system(size: 24))
-                            .foregroundColor(.white)
+                }) {
+                    ZStack {
+                        // Rainbow gradient inner circle
+                        Circle()
+                            .fill(
+                                AngularGradient(
+                                    gradient: Gradient(colors: [
+                                        .red, .orange, .yellow, .green, .blue, .purple, .red
+                                    ]),
+                                    center: .center
+                                )
+                            )
+                            .frame(width: 74, height: 74)
+                        
+                        // White outer circle
+                        Circle()
+                            .strokeBorder(Color.white, lineWidth: 3)
+                            .frame(width: 80, height: 80)
                     }
                 }
-                .padding(.horizontal, 40)
                 .padding(.bottom, 30)
             }
         }
-        .sheet(isPresented: $camera.showReviewScreen) {
-            if let image = camera.capturedImage {
-                PhotoReviewView(selectedImage: image)
-            }
-        }
-        .sheet(isPresented: $camera.showImagePicker) {
-            ImagePicker(selectedImage: $camera.capturedImage)
+        .onAppear {
+            camera.setupCamera()
         }
         .onDisappear {
             camera.stopSession()
@@ -127,6 +101,8 @@ class CameraModel: NSObject, ObservableObject {
     private var photoOutput = AVCapturePhotoOutput()
     private var position: AVCaptureDevice.Position = .front
     
+    private var captureCompletion: ((UIImage?) -> Void)?
+    
     override init() {
         super.init()
         // Run camera setup in background thread
@@ -136,25 +112,33 @@ class CameraModel: NSObject, ObservableObject {
     }
     
     func setupCamera() {
-        do {
-            session.beginConfiguration()
+        // Ensure we're starting fresh
+        session.stopRunning()
+        session.inputs.forEach { session.removeInput($0) }
+        session.outputs.forEach { session.removeOutput($0) }
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
             
-            // Add video input
-            let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                    for: .video,
-                                                    position: position)
-            guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!),
-                  session.canAddInput(videoDeviceInput) else { return }
-            session.addInput(videoDeviceInput)
-            
-            // Add photo output
-            guard session.canAddOutput(photoOutput) else { return }
-            session.addOutput(photoOutput)
-            
-            session.commitConfiguration()
-            
-            // Start running in background thread
-            session.startRunning()
+            do {
+                self.session.beginConfiguration()
+                
+                // Add video input
+                let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                        for: .video,
+                                                        position: self.position)
+                guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!),
+                      self.session.canAddInput(videoDeviceInput) else { return }
+                self.session.addInput(videoDeviceInput)
+                
+                // Add photo output
+                guard self.session.canAddOutput(self.photoOutput) else { return }
+                self.session.addOutput(self.photoOutput)
+                
+                self.session.commitConfiguration()
+                
+                self.session.startRunning()
+            }
         }
     }
     
@@ -208,9 +192,9 @@ class CameraModel: NSObject, ObservableObject {
         session.commitConfiguration()
     }
     
-    func capturePhoto() {
+    func capturePhoto(completion: @escaping (UIImage?) -> Void) {
+        self.captureCompletion = completion
         let settings = AVCapturePhotoSettings()
-        settings.flashMode = isFlashOn ? .on : .off
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
     
@@ -224,10 +208,12 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
                     didFinishProcessingPhoto photo: AVCapturePhoto,
                     error: Error?) {
         guard let imageData = photo.fileDataRepresentation(),
-              let image = UIImage(data: imageData) else { return }
+              let image = UIImage(data: imageData) else {
+            captureCompletion?(nil)
+            return
+        }
         
-        capturedImage = image
-        showReviewScreen = true
+        captureCompletion?(image)
     }
 }
 

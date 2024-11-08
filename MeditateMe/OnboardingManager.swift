@@ -3,6 +3,7 @@ import SwiftUI
 class OnboardingManager: ObservableObject {
     @Published var currentStep: Int = 1
     @Published var onboardingData = OnboardingData()
+    @Published var capturedImage: UIImage?
     
     // Navigation functions
     func nextStep() {
