@@ -38,6 +38,4 @@ struct OnboardingData {
     var experience: Int = 50
     var meditationGoals: [String] = []
     var dailyGoalMinutes: Int = 0
-    // Add other fields as needed
-} 
-
+    // Add o

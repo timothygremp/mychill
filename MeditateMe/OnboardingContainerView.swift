@@ -50,6 +50,4 @@ struct OnboardingContainerView: View {
                 Text("Invalid step")
             }
         }
-        .environmentObject(onboardingManager)
-    }
-} 
+        .env

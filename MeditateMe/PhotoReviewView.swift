@@ -229,12 +229,23 @@ struct ScoreCard: View {
     let color1: Color
     let color2: Color
     let showScore: Bool
+    @State private var showInfo = false
     
     var body: some View {
         VStack(spacing: 15) {
-            Text(title)
-                .font(.system(size: 22))
-                .foregroundColor(.gray)
+            HStack(spacing: 8) {
+                Text(title)
+                    .font(.system(size: 22))
+                    .foregroundColor(.gray)
+                
+                Button(action: {
+                    showInfo = true
+                }) {
+                    Image(systemName: "info.circle")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 18))
+                }
+            }
             
             ZStack {
                 Circle()
@@ -267,6 +278,53 @@ struct ScoreCard: View {
                     .animation(.easeIn(duration: 0.3).delay(0.5), value: showScore)
             }
             .frame(width: 120, height: 120)
+        }
+        .sheet(isPresented: $showInfo) {
+            InfoSheet(title: title)
+                .presentationDetents([.fraction(0.3)])
+                .presentationCornerRadius(25)
+        }
+    }
+}
+
+struct InfoSheet: View {
+    let title: String
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Text("\(title) Inner Peace Score")
+                    .font(.system(size: 24, weight: .bold))
+                Spacer()
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 24))
+                }
+            }
+            
+            Text(infoText)
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(hex: "2C2C2E"))
+    }
+    
+    private var infoText: String {
+        switch title {
+        case "Current":
+            return "Your Current Inner Peace Score reflects your present state of mental well-being based on your responses to our assessment. This score considers factors like anxiety, depression, trauma, relationships, and self-esteem levels."
+        case "Potential":
+            return "Your Potential Inner Peace Score shows what's possible through consistent meditation and mindfulness practice. This score represents the improvement you could achieve by following your personalized healing plan."
+        default:
+            return ""
         }
     }
 }
@@ -307,12 +365,12 @@ struct AnalyzingOverlay: View {
                 LottieView(name: "sloth_10s", loopMode: .loop)
                     .frame(width: 250, height: 250)
                 
-                Text("Creating your\n 🧘‍♀️InnerPeace🧘‍♂️ Score...")
+                Text("Finalizing your\n 🧘‍♀️InnerPeace🧘‍♂️ Score...")
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
-                    .padding(.top)
+                    .padding(.top, -20)
             }
         }
     }

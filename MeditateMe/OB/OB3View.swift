@@ -10,7 +10,7 @@ import SwiftUI
 struct OB3View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var displayedText = ""
-    let fullText = "Just 5 quick questions to find out your 🧘‍♀️InnerPeace🧘‍♂️ score!"
+    let fullText = "Just 5 quick questions to get your 🧘‍♀️InnerPeace🧘‍♂️ Score AND a custom meditation!"
     @State private var isAnimating = false
     @State private var animationAmount: CGFloat = 1.0
     
