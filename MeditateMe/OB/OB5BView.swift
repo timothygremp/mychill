@@ -21,7 +21,17 @@ struct OB5BView: View {
             // Dark background
             // Color(hex: "#1C232D")
             //     .edgesIgnoringSafeArea(.all)
-                GradientBackgroundView()
+               Image("grass_bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+                .overlay(
+                    Color.black.opacity(0.5)  // Add a dark overlay for content visibility
+                )
+            
+            // Subtle particle effect
+            ParticleEffect()
+                .opacity(0.15)
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -53,7 +63,7 @@ struct OB5BView: View {
                     .frame(height: 8)
                     .padding(.horizontal)
                 }
-                .padding(.top)
+                .padding(.top, 48)
                 
                 // Duolingo mascot and question
                 HStack {

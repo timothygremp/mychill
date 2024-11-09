@@ -18,7 +18,17 @@ struct OB5DView: View {
     
     var body: some View {
         ZStack {
-            GradientBackgroundView()
+             Image("granite_bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+                .overlay(
+                    Color.black.opacity(0.5)  // Add a dark overlay for content visibility
+                )
+            
+            // Subtle particle effect
+            ParticleEffect()
+                .opacity(0.15)
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -50,7 +60,7 @@ struct OB5DView: View {
                     .frame(height: 8)
                     .padding(.horizontal)
                 }
-                .padding(.top)
+                .padding(.top, 48)
                 
                 // Duolingo mascot and question
                 HStack {

@@ -18,7 +18,17 @@ struct OB5AView: View {
     
     var body: some View {
         ZStack {
-            GradientBackgroundView()
+            Image("lake_bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+                .overlay(
+                    Color.black.opacity(0.5)  // Add a dark overlay for content visibility
+                )
+            
+            // Subtle particle effect
+            ParticleEffect()
+                .opacity(0.15)
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -50,14 +60,14 @@ struct OB5AView: View {
                     .frame(height: 8)
                     .padding(.horizontal)
                 }
-                .padding(.top)
+                .padding(.top, 48)
                 
                 // Duolingo mascot and question
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("How would you rate your depression?")
+                    Text("How would you rate your depression level?")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()

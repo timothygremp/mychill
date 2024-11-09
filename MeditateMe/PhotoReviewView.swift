@@ -66,24 +66,21 @@ struct PhotoReviewView: View {
     
     var body: some View {
         ZStack {
-            // Gradient background with animation
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(hex: "#1C232D"),
-                    Color(hex: "#2C3440")
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .edgesIgnoringSafeArea(.all)
-            
+            // Background image
+            Image("road_bg")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+                .overlay(
+                    Color.black.opacity(0.5)  // Add a dark overlay to ensure content visibility
+                )
             
             // Subtle particle effect
             ParticleEffect()
                 .opacity(0.15)
             
             VStack(spacing: 15) {
-                // Add back the consistent chevron button
+                // Back button with consistent padding
                 HStack {
                     Button(action: {
                         onboardingManager.previousStep()
@@ -92,11 +89,11 @@ struct PhotoReviewView: View {
                             .foregroundColor(.white)
                             .font(.system(size: 24))
                     }
-                    .padding(.leading)
                     
                     Spacer()
                 }
-                .padding(.top)
+                .padding(.horizontal, 24)  // Match OB views padding
+                .padding(.top, 24)  // Match OB views top padding
                 
                 // Image section with card effect
                 if let image = onboardingManager.capturedImage {
@@ -139,7 +136,7 @@ struct PhotoReviewView: View {
                         .foregroundColor(.white)
                 }
                 
-                // Scores section
+                // Scores section with more horizontal padding
                 HStack(spacing: 40) {
                     // Current Score
                     ScoreCard(
@@ -160,6 +157,7 @@ struct PhotoReviewView: View {
                     )
                 }
                 .padding(.vertical, 20)
+                .padding(.horizontal, 40)  // Increased horizontal padding
                 .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color(hex: "2C2C2E").opacity(0.8))
@@ -167,13 +165,13 @@ struct PhotoReviewView: View {
                 )
                 .padding(.horizontal)
                 
-                Spacer(minLength: 0)
+                Spacer(minLength: 0)  // Flexible spacer
                 
-                // Continue button
+                // Continue button with consistent padding
                 Button(action: {
                     onboardingManager.nextStep()
                 }) {
-                    Text("SEE MY HEALING PLAN")
+                    Text("SEE MY HEALING PLANS")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
@@ -195,9 +193,9 @@ struct PhotoReviewView: View {
                         .repeatForever(autoreverses: true),
                     value: animationAmount
                 )
-                .padding(.bottom, 10)
+                .padding(.bottom, 34)  // Match OB view bottom padding
             }
-            .padding(.top, 10)
+            .padding(.vertical, 10)  // Overall vertical padding
             
             if isAnalyzing {
                 AnalyzingOverlay()
