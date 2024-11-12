@@ -10,12 +10,15 @@ import SwiftUI
 struct OB9View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @State private var selectedTime: String? = nil
+    @State private var showPlanInfo: Bool = false
+    @State private var selectedLevel: String = ""
     
     var body: some View {
         ZStack {
             // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+//            Color(hex: "#1C232D")
+//                .edgesIgnoringSafeArea(.all)
+            GradientBackgroundView()
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -53,7 +56,7 @@ struct OB9View: View {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("What's your daily\nlearning goal?")
+                    Text("Pick a custom healing plan")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -66,16 +69,16 @@ struct OB9View: View {
                 
                 // Time options
                 VStack(spacing: 12) {
-                    makeOptionButton(time: "5 min / day", level: "Casual")
-                    makeOptionButton(time: "10 min / day", level: "Regular")
-                    makeOptionButton(time: "15 min / day", level: "Serious")
-                    makeOptionButton(time: "20 min / day", level: "Intense")
+                    makeOptionButton(time: "1 min / day", level: "Casual")
+                    makeOptionButton(time: "3 min / day", level: "Regular")
+                    makeOptionButton(time: "4 min / day", level: "Serious")
+                    makeOptionButton(time: "5 min / day", level: "Intense")
                 }
                 .padding(.horizontal)
                 
                 Spacer()
                 
-                // I'm Committed button
+                // I'M COMMITTED button
                 Button(action: {
                     onboardingManager.nextStep()
                 }) {
@@ -104,6 +107,8 @@ struct OB9View: View {
     private func makeOptionButton(time: String, level: String) -> some View {
         Button(action: {
             selectedTime = time
+            selectedLevel = level
+            showPlanInfo = true
             // Extract just the number from strings like "5 min / day"
             if let minutes = time.split(separator: " ").first {
                 onboardingManager.onboardingData.dailyGoalMinutes = Int(minutes) ?? 0
@@ -118,7 +123,7 @@ struct OB9View: View {
                 
                 Text(level)
                     .font(.system(size: 18))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.white)
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -131,6 +136,82 @@ struct OB9View: View {
                     .stroke(Color.white, lineWidth: selectedTime == time ? 2 : 0)
             )
         }
+        .sheet(isPresented: $showPlanInfo) {
+            MeditationPlanSheet(level: selectedLevel, minutesPerDay: onboardingManager.onboardingData.dailyGoalMinutes)
+                .environmentObject(onboardingManager)
+                .presentationDetents([.fraction(0.6)])
+                .presentationCornerRadius(25)
+        }
+    }
+}
+
+struct MeditationPlanSheet: View {
+    let level: String
+    let minutesPerDay: Int
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var onboardingManager: OnboardingManager
+    
+    private var sortedAssessments: [(String, Int)] {
+        let scores = [
+            ("Anxiety", onboardingManager.onboardingData.anxiety),
+            ("Depression", onboardingManager.onboardingData.depression),
+            ("Trauma", onboardingManager.onboardingData.trauma),
+            ("Relationships", onboardingManager.onboardingData.relationship),
+            ("Self-Esteem", onboardingManager.onboardingData.esteem)
+        ]
+        return scores.sorted { $0.1 > $1.1 } // Sort by severity (highest scores first)
+    }
+    
+    private var minutesPerMeditation: Int {
+        if minutesPerDay >= 10 {
+            return minutesPerDay / 5 // Divide total minutes by number of assessments
+        } else {
+            return minutesPerDay // For plans less than 10 minutes, use full time
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            // Header
+            HStack {
+                Text("\(level) Healing Plan")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.white)
+                Spacer()
+                Button(action: {
+                    dismiss()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.gray)
+                        .font(.system(size: 24))
+                }
+            }
+            
+            Text("Your personalized \(minutesPerDay)-minute daily meditation plan:")
+                .font(.system(size: 16))
+                .foregroundColor(.secondary)
+                .padding(.bottom, 10)
+            
+            VStack(spacing: 12) {
+                ForEach(Array(sortedAssessments.prefix(5).enumerated()), id: \.element.0) { index, assessment in
+                    HStack {
+                        Text("Day \(index + 1)")
+                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .medium))
+                        Spacer()
+                        Text("\(assessment.0) Meditation")
+                            .foregroundColor(.white)
+                        Text("(\(minutesPerMeditation)min)")
+                            .foregroundColor(.green)
+                    }
+                    .font(.system(size: 16, weight: .medium))
+                }
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(hex: "2C2C2E"))
     }
 }
 

@@ -29,9 +29,9 @@ struct OnboardingContainerView: View {
             case 11:
                 PhotoReviewView(onboardingManager: onboardingManager)
             case 12:
-                OB12View()
+                OB9View()
             case 13:
-                OB13View()
+                OB10View()
             case 14:
                 OB14View()
             case 15:

@@ -56,8 +56,11 @@ struct PhotoReviewView: View {
         }
         
         // Calculate potential score with a ceiling of 98 and floor of 81
-        let potential = min(max(current * improvementFactor, 86), 98)
-        return Int(potential)
+        let baseScore = min(max(current * improvementFactor, 86), 98)
+        
+        // Add final random adjustment of ±3
+        let finalAdjustment = Double.random(in: -3...3)
+        return Int(baseScore + finalAdjustment)
     }
     
     init(onboardingManager: OnboardingManager) {
@@ -146,6 +149,7 @@ struct PhotoReviewView: View {
                         color2: Color(hex: "#FF69B4"),
                         showScore: showScores
                     )
+                    .environmentObject(onboardingManager)
                     
                     // Potential Score
                     ScoreCard(
@@ -228,6 +232,7 @@ struct ScoreCard: View {
     let color2: Color
     let showScore: Bool
     @State private var showInfo = false
+    @EnvironmentObject var onboardingManager: OnboardingManager
     
     var body: some View {
         VStack(spacing: 15) {
@@ -279,7 +284,8 @@ struct ScoreCard: View {
         }
         .sheet(isPresented: $showInfo) {
             InfoSheet(title: title)
-                .presentationDetents([.fraction(0.3)])
+                .environmentObject(onboardingManager)
+                .presentationDetents([.fraction(0.55)])
                 .presentationCornerRadius(25)
         }
     }
@@ -288,12 +294,38 @@ struct ScoreCard: View {
 struct InfoSheet: View {
     let title: String
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var onboardingManager: OnboardingManager
+    
+    private var sortedScores: [(String, Int)] {
+        let scores = [
+            ("Anxiety", 100 - onboardingManager.onboardingData.anxiety),
+            ("Depression", 100 - onboardingManager.onboardingData.depression),
+            ("Trauma", 100 - onboardingManager.onboardingData.trauma),
+            ("Relationships", 100 - onboardingManager.onboardingData.relationship),
+            ("Self-Esteem", 100 - onboardingManager.onboardingData.esteem)
+        ]
+        return scores.sorted { $0.1 < $1.1 }
+    }
+    
+    private var sortedScoresWithPotential: [(String, Int, Int)] {
+        let scores = [
+            ("Anxiety", 100 - onboardingManager.onboardingData.anxiety, calculatePotential(100 - onboardingManager.onboardingData.anxiety)),
+            ("Depression", 100 - onboardingManager.onboardingData.depression, calculatePotential(100 - onboardingManager.onboardingData.depression)),
+            ("Trauma", 100 - onboardingManager.onboardingData.trauma, calculatePotential(100 - onboardingManager.onboardingData.trauma)),
+            ("Relationships", 100 - onboardingManager.onboardingData.relationship, calculatePotential(100 - onboardingManager.onboardingData.relationship)),
+            ("Self-Esteem", 100 - onboardingManager.onboardingData.esteem, calculatePotential(100 - onboardingManager.onboardingData.esteem))
+        ]
+        return scores.sorted { $0.1 < $1.1 }
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
+            // Header
             HStack {
-                Text("\(title) Inner Peace Score")
-                    .font(.system(size: 24, weight: .bold))
+                Text("\(title) 🧘‍♀️InnerPeace🧘‍♂️ Score")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.top, 4)
                 Spacer()
                 Button(action: {
                     dismiss()
@@ -309,20 +341,97 @@ struct InfoSheet: View {
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             
+            if title == "Current" {
+                Text("Assessment Breakdown:")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
+                
+                VStack(spacing: 12) {
+                    ForEach(sortedScores, id: \.0) { assessment, score in
+                        HStack {
+                            Text(assessment)
+                                .foregroundColor(.white)
+                                .font(.system(size: 18, weight: .medium))
+                            Spacer()
+                            HStack(spacing: 0) {
+                                Text("\(score)")
+                                    .foregroundColor(scoreColor(score))
+                                Text("/100")
+                                    .foregroundColor(.green)
+                            }
+                            .font(.system(size: 18, weight: .medium))
+                        }
+                    }
+                }
+            } else {
+                Text("Potential Improvements:")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.top, 10)
+                
+                VStack(spacing: 12) {
+                    ForEach(sortedScoresWithPotential, id: \.0) { assessment, current, potential in
+                        HStack {
+                            Text(assessment)
+                                .foregroundColor(.white)
+                                .font(.system(size: 18, weight: .medium))
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Text("\(current)")
+                                    .foregroundColor(scoreColor(current))
+                                Text("→")
+                                    .foregroundColor(.white)
+                                Text("\(potential)")
+                                    .foregroundColor(scoreColor(potential))
+                                Text("/100")
+                                    .foregroundColor(.green)
+                            }
+                            .font(.system(size: 18, weight: .medium))
+                        }
+                    }
+                }
+            }
+            
             Spacer()
         }
         .padding()
         .background(Color(hex: "2C2C2E"))
     }
     
-    private var infoText: String {
-        switch title {
-        case "Current":
-            return "Your Current Inner Peace Score reflects your present state of mental well-being based on your responses to our assessment. This score considers factors like anxiety, depression, trauma, relationships, and self-esteem levels."
-        case "Potential":
-            return "Your Potential Inner Peace Score shows what's possible through consistent meditation and mindfulness practice. This score represents the improvement you could achieve by following your personalized healing plan."
+    private func calculatePotential(_ currentScore: Int) -> Int {
+        let improvement: Int
+        switch currentScore {
+        case 0...20:
+            improvement = Int.random(in: 60...65)
+        case 21...40:
+            improvement = Int.random(in: 45...50)
+        case 41...60:
+            improvement = Int.random(in: 30...35)
+        case 61...80:
+            improvement = Int.random(in: 15...20)
         default:
-            return ""
+            improvement = Int.random(in: 5...10)
+        }
+        return min(currentScore + improvement, 98)
+    }
+    
+    private var infoText: String {
+        if title == "Current" {
+            return "Your Current Inner Peace Score reflects your present state of mental well-being based on your responses to our assessment. This score considers factors like anxiety, depression, trauma, relationships, and self-esteem levels."
+        } else {
+            return "Your Potential Inner Peace Score shows what's possible through consistent meditation and mindfulness practice. This score represents the improvement you could achieve by following your personalized healing plan."
+        }
+    }
+    
+    private func scoreColor(_ score: Int) -> Color {
+        switch score {
+        case 0...49:
+            return .red
+        case 50...80:
+            return .yellow
+        default:
+            return .green
         }
     }
 }
