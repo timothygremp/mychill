@@ -7,7 +7,8 @@ struct OnboardingContainerView: View {
         Group {
             switch onboardingManager.currentStep {
             case 1:
-                OB1View()
+                // OB1View()
+                ContentView()
             case 2:
                 OB2View()
             case 3:
@@ -35,7 +36,7 @@ struct OnboardingContainerView: View {
             case 14:
                 OB13BView()
             case 15:
-                OB16View()
+                ContentView()
             case 16:
                 OB17View()
             case 17:

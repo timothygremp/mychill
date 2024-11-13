@@ -59,6 +59,7 @@ struct ContentView: View {
     @State private var showPaywall = false
     @StateObject private var purchaseManager = PurchaseManager()
     @State private var lastUsedBackgroundIndex: Int = 0
+    @State private var showCreateMeditation = false
     
     var body: some View {
         ZStack {
@@ -116,47 +117,62 @@ struct ContentView: View {
                             .padding(.horizontal)
                     }
 
-                    // Themes section
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack {
-                            ForEach(availableThemes, id: \.self) { theme in
-                                ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
-                                    if selectedThemes.contains(theme) {
-                                        selectedThemes.remove(theme)
-                                    } else {
-                                        selectedThemes.insert(theme)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
-                    }
-                    .frame(height: 50)
+                    // // Themes section
+                    // ScrollView(.horizontal, showsIndicators: false) {
+                    //     HStack {
+                    //         ForEach(availableThemes, id: \.self) { theme in
+                    //             ThemeButton(theme: theme, isSelected: selectedThemes.contains(theme)) {
+                    //                 if selectedThemes.contains(theme) {
+                    //                     selectedThemes.remove(theme)
+                    //                 } else {
+                    //                     selectedThemes.insert(theme)
+                    //                 }
+                    //             }
+                    //         }
+                    //     }
+                    //     .padding(.horizontal)
+                    // }
+                    // .frame(height: 50)
 
-                    Spacer(minLength: 0)
+                    // Spacer(minLength: 0)
 
                     // Message input and send button
                     HStack(alignment: .bottom) {
-                        ExpandingTextView(text: $message, height: $textViewHeight) {
-                            // Handle done action
-                        }
-                        .frame(height: textViewHeight)
-                        .background(Color(UIColor.systemBackground).opacity(0.1))
-                        .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
+                        // ExpandingTextView(text: $message, height: $textViewHeight) {
+                        //     // Handle done action
+                        // }
+                        // .frame(height: textViewHeight)
+                        // .background(Color(UIColor.systemBackground).opacity(0.1))
+                        // .cornerRadius(20)
+                        // .overlay(
+                        //     RoundedRectangle(cornerRadius: 20)
+                        //         .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        // )
 
-                        Button(action: sendMessage) {
-                            Image(systemName: "arrow.up.circle.fill")
-                                .foregroundColor(.white)
-                                .font(.system(size: 30))
-                        }
-                        .padding(.leading, 8)
+                        // Button(action: sendMessage) {
+                        //     Image(systemName: "arrow.up.circle.fill")
+                        //         .foregroundColor(.white)
+                        //         .font(.system(size: 30))
+                        // }
+                        // .padding(.leading, 8)
                     }
                     .padding(.horizontal)
                     .padding(.bottom)
+                    .padding(.top, 45)
+                    .sheet(isPresented: $showCreateMeditation) {
+                        CreateMeditationView()
+                    }
+                    .overlay(
+                        Button(action: {
+                            showCreateMeditation = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 35))
+                                .foregroundColor(Color(hex: "#FFB347"))
+                                .background(Circle().fill(.white))
+                                .shadow(color: .black.opacity(0.2), radius: 5)
+                        }
+                    )
                 }
                 .overlay(
                     Group {

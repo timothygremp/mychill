@@ -1,5 +1,5 @@
 //
-//  OB13BView.swift
+//  CreateMeditationView.swift
 //  MeditateMe
 //
 //  Created by Alaryce Patterson on 11/13/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OB13BView: View {
+struct CreateMeditationView: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @AppStorage("isOnboardingComplete") private var isOnboardingComplete: Bool = false
     @Environment(\.dismiss) var dismiss
@@ -52,42 +52,42 @@ struct OB13BView: View {
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
-                HStack {
-                    Button(action: {
-                        // Navigation action will be added later
-                        onboardingManager.previousStep()
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.white)
-                            .font(.system(size: 24))
-                    }
-                    .padding(.leading)
-                    
-                    // Progress bar
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .foregroundColor(Color.gray.opacity(0.3))
-                                .frame(height: 8)
-                                .cornerRadius(4)
-                            
-                            Rectangle()
-                                .foregroundColor(Color(hex: "#8FE055"))
-                                .frame(width: geometry.size.width * 1.0, height: 8)
-                                .cornerRadius(4)
-                        }
-                    }
-                    .frame(height: 8)
-                    .padding(.horizontal)
-                }
-                .padding(.top, 48)
-                
+//                HStack {
+//                    Button(action: {
+//                        // Navigation action will be added later
+//                        onboardingManager.previousStep()
+//                    }) {
+//                        Image(systemName: "chevron.left")
+//                            .foregroundColor(.white)
+//                            .font(.system(size: 24))
+//                    }
+//                    .padding(.leading)
+//                    
+//                    // Progress bar
+//                    GeometryReader { geometry in
+//                        ZStack(alignment: .leading) {
+//                            Rectangle()
+//                                .foregroundColor(Color.gray.opacity(0.3))
+//                                .frame(height: 8)
+//                                .cornerRadius(4)
+//                            
+//                            Rectangle()
+//                                .foregroundColor(Color(hex: "#8FE055"))
+//                                .frame(width: geometry.size.width * 1.0, height: 8)
+//                                .cornerRadius(4)
+//                        }
+//                    }
+//                    .frame(height: 8)
+//                    .padding(.horizontal)
+//                }
+//                .padding(.top, 48)
+//                
                 // Lottie animation and step text
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("Step 2:\nAdd details")
+                    Text("Create a Meditation")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -96,15 +96,11 @@ struct OB13BView: View {
                                 .fill(Color.gray.opacity(0.2))
                         )
                 }
-                .padding()
+                .padding(.top, 48)
                 
                 // Assessment type heading
-                 Text("Day 1")
-                    .font(.system(size: 30, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(.vertical, 5)
 
-                Text("\(lowestScoringAssessment) Meditation")
+                Text("Create Meditation")
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.vertical, 5)
@@ -112,7 +108,7 @@ struct OB13BView: View {
                 // Multi-line message input field
                 ZStack(alignment: .topLeading) {
                     if message.isEmpty {
-                        Text("Add any details about your \(lowestScoringAssessment) to make it more personalized. You can add anything you'd like.")
+                        Text("Add any details about your stressed about or the meditation theme to make it more personalized. You can add anything you'd like.")
                             .foregroundColor(.white.opacity(0.7))
                             .padding(.horizontal, 4)
                             .padding(.vertical, 8)
@@ -168,6 +164,7 @@ struct OB13BView: View {
                         .cornerRadius(25)
                         .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                         .padding(.horizontal)
+                        .padding(.bottom, 48)
                 }
                 .disabled(message.isEmpty)
                 .opacity(message.isEmpty ? 0.5 : 1.0)
@@ -267,7 +264,6 @@ struct OB13BView: View {
     }
 }
 
-
 #Preview {
-    OB13BView()
+    CreateMeditationView()
 }
