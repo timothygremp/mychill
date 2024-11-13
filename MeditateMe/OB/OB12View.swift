@@ -13,11 +13,23 @@ struct OB12View: View {
     @EnvironmentObject private var onboardingManager: OnboardingManager
     @Environment(\.dismiss) private var dismiss
     @State private var isNotificationRequested = false
+    @State private var animationAmount: CGFloat = 1.0
     var body: some View {
         ZStack {
             // Dark background
-            Color(hex: "#1C232D")
-                .edgesIgnoringSafeArea(.all)
+//            Color(hex: "#1C232D")
+//                .edgesIgnoringSafeArea(.all)
+            Image("grass_bg")
+               .resizable()
+               .aspectRatio(contentMode: .fill)
+               .edgesIgnoringSafeArea(.all)
+               .overlay(
+                   Color.black.opacity(0.5)  // Add a dark overlay for content visibility
+               )
+           
+           // Subtle particle effect
+           ParticleEffect()
+               .opacity(0.15)
                 
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -50,14 +62,14 @@ struct OB12View: View {
                     .frame(height: 8)
                     .padding(.horizontal)
                 }
-                .padding(.top)
+                .padding(.top, 48)
                 
                 // Lottie animation and message
                 HStack {
                     LottieView(name: "sloth_10s", loopMode: .loop)
                         .frame(width: 120, height: 120)
                     
-                    Text("I'll remind you to\npractice so it becomes a\nhabit!")
+                    Text("I'll remind you to\nmeditate so it becomes a\nhabit!")
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
                         .padding()
@@ -72,7 +84,7 @@ struct OB12View: View {
                 
                 // Notification Permission Box
                VStack(spacing: 8) {
-                    Text("FlameGame Would Like to\nSend You Notifications")
+                    Text("MyChill Would Like to\nSend You Notifications")
                         .multilineTextAlignment(.center)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white.opacity(0.6))
@@ -136,19 +148,33 @@ struct OB12View: View {
                     // Button action will be added later
                     onboardingManager.nextStep()
                 }) {
-                    Text("CONTINUE")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(Color(hex: "#1C232D"))
-                        .frame(maxWidth: .infinity)
+                    Text("MAKE MY FIRST MEDITATION")
+                        .font(.headline)
+                        .foregroundColor(.white)
                         .padding()
+                        .frame(minWidth: 0, maxWidth: .infinity)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(hex: "#8FE055"))
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                        .padding(.horizontal)
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
-                .padding(.bottom, 30)
+                .padding(.horizontal)
+                .padding(.bottom, 34)
+                .scaleEffect(animationAmount)
+                .animation(
+                    Animation.easeInOut(duration: 1.5)
+                        .repeatForever(autoreverses: true),
+                    value: animationAmount
+                )
             }
+        }
+        .onAppear {
+            animationAmount = 1.05
         }
     }
     
@@ -161,6 +187,7 @@ struct OB12View: View {
                 if granted {
                     print("✅ Notification permission granted")
                     checkNotificationStatus()
+                    onboardingManager.nextStep()
                 } else {
                     print("❌ Notification permission denied")
                     if let error = error {

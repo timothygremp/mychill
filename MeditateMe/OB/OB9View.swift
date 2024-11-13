@@ -18,7 +18,18 @@ struct OB9View: View {
             // Dark background
 //            Color(hex: "#1C232D")
 //                .edgesIgnoringSafeArea(.all)
-            GradientBackgroundView()
+            
+            Image("lake_bg")
+               .resizable()
+               .aspectRatio(contentMode: .fill)
+               .edgesIgnoringSafeArea(.all)
+               .overlay(
+                   Color.black.opacity(0.5)  // Add a dark overlay for content visibility
+               )
+           
+           // Subtle particle effect
+           ParticleEffect()
+               .opacity(0.15)
             
             VStack(spacing: 20) {
                 // Top navigation bar with back button and progress
@@ -49,7 +60,7 @@ struct OB9View: View {
                     .frame(height: 8)
                     .padding(.horizontal)
                 }
-                .padding(.top)
+                .padding(.top, 48)
                 
                 // Lottie animation and question
                 HStack {
@@ -78,7 +89,7 @@ struct OB9View: View {
                 
                 Spacer()
                 
-                // I'M COMMITTED button
+                // Modified continue button with OB5 style
                 Button(action: {
                     onboardingManager.nextStep()
                 }) {
@@ -88,12 +99,25 @@ struct OB9View: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.3))
+                            Group {
+                                if selectedTime != nil {
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [Color(hex: "#FFB347"), Color(hex: "#FF69B4")]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                } else {
+                                    Color.gray.opacity(0.3)
+                                }
+                            }
                         )
+                        .cornerRadius(25)
+                        .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
                         .padding(.horizontal)
                 }
-                .padding(.bottom, 30)
+                .disabled(selectedTime == nil)
+                .opacity(selectedTime == nil ? 0.5 : 1.0)
+                .padding(.bottom, 50)
             }
         }
         .onAppear {

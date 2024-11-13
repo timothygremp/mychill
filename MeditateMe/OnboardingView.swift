@@ -54,7 +54,7 @@ struct OnboardingView: View {
                     
                     VStack(spacing: 15) {
                         StylishTextField(text: $name, placeholder: "Your First Name")
-                            .focused($focusedField, equals: .name)
+                            .focused($focusedField, equals: .name) 
                     }
                     .padding(.horizontal)
                     
