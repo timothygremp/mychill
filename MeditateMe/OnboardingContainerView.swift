@@ -31,9 +31,9 @@ struct OnboardingContainerView: View {
             case 12:
                 OB9View()
             case 13:
-                OB12View()
-            case 14:
                 OB13AView()
+            case 14:
+                OB13BView()
             case 15:
                 OB16View()
             case 16:
